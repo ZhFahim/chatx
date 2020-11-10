@@ -59,10 +59,11 @@ flutter:
   # list giving the asset and other descriptors for the font. For
   # example:
   fonts:
-    - family: Helvetica Neue
+    - family: HelveticaNeue
       fonts:
-        - asset: fonts/HelveticaNeue.ttf
-        - asset: fonts/HelveticaNeuBold.ttf
+        - asset: fonts/HelveticaNeueBold.ttf
+    - family: HelveticaNeueLight
+      fonts:
         - asset: fonts/HelveticaNeueLight.ttf
   #   - family: Trajan Pro
   #     fonts:
