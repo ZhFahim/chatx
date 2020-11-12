@@ -78,7 +78,9 @@ class HomeScreen extends StatelessWidget {
                     style: TextStyle(color: Theme.of(context).canvasColor),
                   ),
                   color: Theme.of(context).accentColor,
-                  onPressed: () {},
+                  onPressed: () {
+                    Navigator.pushNamed(context, 'chatScreen');
+                  },
                 ),
               ),
               SizedBox(height: 5.0),

@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'screens/home.dart';
+import 'screens/chat.dart';
 
 void main() {
   runApp(ChatX());
@@ -21,7 +22,10 @@ class ChatX extends StatelessWidget {
         fontFamily: 'HelveticaNeue',
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      home: HomeScreen(),
+      routes: {
+        '/': (context) => HomeScreen(),
+        'chatScreen': (context) => ChatScreen(),
+      },
     );
   }
 }
