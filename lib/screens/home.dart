@@ -12,7 +12,7 @@ class HomeScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
-              SizedBox(height: 30.0),
+              SizedBox(height: 10.0),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20.0),
                 child: Text(
@@ -52,8 +52,7 @@ class HomeScreen extends StatelessWidget {
                   itemCount: 3,
                   itemBuilder: (context, index) => ListTile(
                     title: Text('Room ${index + 1}'),
-                    subtitle:
-                        Text('ID: ${Random().nextInt(999999).toString()}'),
+                    subtitle: Text('ID: ${Random().nextInt(999999).toString()}'),
                     dense: true,
                   ),
                 ),
@@ -101,8 +100,7 @@ class HomeScreen extends StatelessWidget {
                             ),
                             child: Text(
                               'Create Room',
-                              style: TextStyle(
-                                  color: Theme.of(context).canvasColor),
+                              style: TextStyle(color: Theme.of(context).canvasColor),
                             ),
                             color: Theme.of(context).accentColor,
                             onPressed: () {},
