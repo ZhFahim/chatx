@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CLIENT_ID</key>
+	<string>199356532917-v1busm796oe5up26bbso6imulqbs27aq.apps.googleusercontent.com</string>
+	<key>REVERSED_CLIENT_ID</key>
+	<string>com.googleusercontent.apps.199356532917-v1busm796oe5up26bbso6imulqbs27aq</string>
+	<key>API_KEY</key>
+	<string>AIzaSyBIPy9_jyYkCQ3teOAogJJRpn6CCz_tcrs</string>
+	<key>GCM_SENDER_ID</key>
+	<string>199356532917</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>com.fame.chatx</string>
+	<key>PROJECT_ID</key>
+	<string>chatx-f8b25</string>
+	<key>STORAGE_BUCKET</key>
+	<string>chatx-f8b25.appspot.com</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:199356532917:ios:e0953c7930c466552616fc</string>
+	<key>DATABASE_URL</key>
+	<string>https://chatx-f8b25.firebaseio.com</string>
+</dict>
+</plist>

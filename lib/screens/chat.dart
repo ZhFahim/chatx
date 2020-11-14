@@ -11,6 +11,7 @@ class ChatScreen extends StatelessWidget {
 
   ChatScreen(this.roomId);
   final roomId;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -27,8 +28,7 @@ class ChatScreen extends StatelessWidget {
                     padding: const EdgeInsets.only(left: 20.0),
                     child: Text(
                       'Room ${roomId.substring(0, 8)}',
-                      style:
-                          TextStyle(color: Color(0xFFFFBF59), fontSize: 28.0),
+                      style: TextStyle(color: Color(0xFFFFBF59), fontSize: 28.0),
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
@@ -49,10 +49,7 @@ class ChatScreen extends StatelessWidget {
             ),
             Expanded(
               child: StreamBuilder(
-                stream: firestore
-                    .collection('rooms/$roomId/chats')
-                    .orderBy('createdAt', descending: true)
-                    .snapshots(),
+                stream: firestore.collection('rooms/$roomId/chats').orderBy('createdAt', descending: true).snapshots(),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return Center(child: CircularProgressIndicator());
@@ -121,17 +118,24 @@ class ChatScreen extends StatelessWidget {
                     ),
                   ),
                   SizedBox(width: 10.0),
-                  GestureDetector(
-                      onTap: () async {
-                        final String message = msgController.text;
-                        msgController.clear();
-                        await firestore.collection('rooms/$roomId/chats/').add({
-                          'text': message,
-                          'user': currentUser.uid,
-                          'createdAt': Timestamp.now(),
-                        });
-                      },
-                      child: Icon(Icons.send)),
+                  FlatButton(
+                    color: Colors.white,
+                    padding: EdgeInsets.all(0),
+                    textColor: Theme.of(context).accentColor,
+                    child: Icon(Icons.send),
+                    onPressed: () async {
+                      final String message = msgController.text;
+                      if (message == '') {
+                        return;
+                      }
+                      msgController.clear();
+                      await firestore.collection('rooms/$roomId/chats/').add({
+                        'text': message,
+                        'user': currentUser.uid,
+                        'createdAt': Timestamp.now(),
+                      });
+                    },
+                  ),
                 ],
               ),
             ),
@@ -152,8 +156,8 @@ class ChatBubble extends StatelessWidget {
   }) : super(key: key);
 
   final String text;
-  final isSentMsg;
-  final uid;
+  final bool isSentMsg;
+  final String uid;
   final Timestamp timestamp;
 
   @override
@@ -188,10 +192,7 @@ class ChatBubble extends StatelessWidget {
               Expanded(
                 child: Text(
                   uid.substring(0, 6),
-                  style: TextStyle(
-                      color: isSentMsg
-                          ? Theme.of(context).accentColor
-                          : Color(0xFFFFBF59)),
+                  style: TextStyle(color: isSentMsg ? Theme.of(context).accentColor : Color(0xFFFFBF59)),
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
