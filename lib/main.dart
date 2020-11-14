@@ -24,7 +24,8 @@ class ChatX extends StatelessWidget {
       ),
       routes: {
         '/': (context) => HomeScreen(),
-        'chatScreen': (context) => ChatScreen(),
+        'chatScreen': (context) =>
+            ChatScreen(ModalRoute.of(context).settings.arguments),
       },
     );
   }

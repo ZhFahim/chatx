@@ -1,9 +1,17 @@
 import 'dart:math';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
+FirebaseFirestore firestore = FirebaseFirestore.instance;
+FirebaseAuth auth = FirebaseAuth.instance;
 
 class HomeScreen extends StatelessWidget {
+  final TextEditingController roomIdController = TextEditingController();
   @override
   Widget build(BuildContext context) {
+    Firebase.initializeApp();
     return Scaffold(
       resizeToAvoidBottomInset: false,
       body: SafeArea(
@@ -62,6 +70,7 @@ class HomeScreen extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20.0),
                 child: TextField(
+                  controller: roomIdController,
                   decoration: InputDecoration(labelText: 'Enter Room ID'),
                 ),
               ),
@@ -79,7 +88,42 @@ class HomeScreen extends StatelessWidget {
                   ),
                   color: Theme.of(context).accentColor,
                   onPressed: () {
-                    Navigator.pushNamed(context, 'chatScreen');
+                    FocusScope.of(context).unfocus();
+                    firestore
+                        .collection('rooms')
+                        .where('roomId', isEqualTo: roomIdController.text)
+                        .get()
+                        .then((result) {
+                      if (result.docs.isNotEmpty) {
+                        firestore
+                            .collection('rooms/${result.docs.first.id}/members')
+                            .get()
+                            .then((value) {
+                          if (value.size < 10) {
+                            auth.signOut().then((value) {
+                              auth.signInAnonymously().then((value) async {
+                                await firestore
+                                    .collection(
+                                        'rooms/${result.docs.first.id}/members')
+                                    .add({
+                                  'uid': auth.currentUser.uid,
+                                  'joinedAt': Timestamp.now(),
+                                });
+                                Navigator.pushNamed(
+                                  context,
+                                  'chatScreen',
+                                  arguments: result.docs.first.id,
+                                );
+                              });
+                            });
+                          } else {
+                            print('Maximum 10 members can enter in a room');
+                          }
+                        });
+                      } else {
+                        print('Room not found!');
+                      }
+                    });
                   },
                 ),
               ),
@@ -105,7 +149,41 @@ class HomeScreen extends StatelessWidget {
                                   color: Theme.of(context).canvasColor),
                             ),
                             color: Theme.of(context).accentColor,
-                            onPressed: () {},
+                            onPressed: () {
+                              // await firestore
+                              //     .collection('rooms')
+                              //     .where('roomId', isEqualTo: 'test')
+                              //     .get()
+                              //     .then((value) {
+                              //   value.docs.forEach((element) {
+                              //     print(element.id);
+                              //   });
+                              // });
+                              auth.signOut().then((value) {
+                                auth.signInAnonymously().then((value) async {
+                                  print(value.user);
+                                  var room =
+                                      await firestore.collection('rooms').add(
+                                    {},
+                                  );
+                                  await firestore
+                                      .collection('rooms/${room.id}/members')
+                                      .add({
+                                    'uid': auth.currentUser.uid,
+                                    'joinedAt': Timestamp.now(),
+                                  });
+                                  await firestore
+                                      .doc('rooms/${room.id}')
+                                      .update(
+                                          {'roomId': room.id.substring(0, 8)});
+                                  Navigator.pushNamed(
+                                    context,
+                                    'chatScreen',
+                                    arguments: room.id,
+                                  );
+                                });
+                              });
+                            },
                           ),
                         ),
                         SizedBox(width: 5.0),

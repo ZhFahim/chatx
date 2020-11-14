@@ -1,6 +1,16 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
+FirebaseFirestore firestore = FirebaseFirestore.instance;
+FirebaseAuth auth = FirebaseAuth.instance;
+final currentUser = auth.currentUser;
+
 class ChatScreen extends StatelessWidget {
+  final TextEditingController msgController = TextEditingController();
+
+  ChatScreen(this.roomId);
+  final roomId;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -12,11 +22,15 @@ class ChatScreen extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Padding(
-                  padding: const EdgeInsets.only(left: 20.0),
-                  child: Text(
-                    'Room Name',
-                    style: TextStyle(color: Color(0xFFFFBF59), fontSize: 28.0),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.only(left: 20.0),
+                    child: Text(
+                      'Room ${roomId.substring(0, 8)}',
+                      style:
+                          TextStyle(color: Color(0xFFFFBF59), fontSize: 28.0),
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
                 ),
                 Padding(
@@ -34,28 +48,41 @@ class ChatScreen extends StatelessWidget {
               ),
             ),
             Expanded(
-              child: ListView(
-                padding: EdgeInsets.symmetric(vertical: 20.0),
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: Text('Beginning of the converstaion'),
-                  ),
-                  SizedBox(height: 5.0),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: Text('Wednesday, November 11, 10:34 PM'),
-                  ),
-                  SizedBox(height: 20.0),
-                  ChatBubble(isSentMsg: false),
-                  ChatBubble(isSentMsg: true),
-                  ChatBubble(isSentMsg: true),
-                  ChatBubble(isSentMsg: false),
-                  ChatBubble(isSentMsg: true),
-                  ChatBubble(isSentMsg: false),
-                  ChatBubble(isSentMsg: true),
-                  ChatBubble(isSentMsg: false),
-                ],
+              child: StreamBuilder(
+                stream: firestore
+                    .collection('rooms/$roomId/chats')
+                    .orderBy('createdAt', descending: true)
+                    .snapshots(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return Center(child: CircularProgressIndicator());
+                  } else {
+                    final chats = snapshot.data.documents;
+                    return ListView.builder(
+                      reverse: true,
+                      padding: EdgeInsets.symmetric(vertical: 20.0),
+                      itemCount: chats.length,
+                      itemBuilder: (context, index) =>
+                          // children: [
+                          //   Padding(
+                          //     padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                          //     child: Text('Beginning of the converstaion'),
+                          //   ),
+                          //   SizedBox(height: 5.0),
+                          //   Padding(
+                          //     padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                          //     child: Text('Wednesday, November 11, 10:34 PM'),
+                          //   ),
+                          //   SizedBox(height: 20.0),
+                          ChatBubble(
+                        text: chats[index]['text'],
+                        isSentMsg: chats[index]['user'] == currentUser.uid,
+                        uid: chats[index]['user'],
+                        timestamp: chats[index]['createdAt'],
+                      ),
+                    );
+                  }
+                },
               ),
             ),
             Container(
@@ -65,7 +92,12 @@ class ChatScreen extends StatelessWidget {
                 children: [
                   Expanded(
                     child: TextField(
-                      style: TextStyle(color: Colors.black),
+                      controller: msgController,
+                      style: TextStyle(
+                        color: Colors.black,
+                        fontFamily: 'HelveticaNeueLight',
+                        fontWeight: FontWeight.bold,
+                      ),
                       decoration: InputDecoration(
                         hintText: 'Type your message...',
                         hintStyle: TextStyle(
@@ -89,7 +121,17 @@ class ChatScreen extends StatelessWidget {
                     ),
                   ),
                   SizedBox(width: 10.0),
-                  Icon(Icons.send),
+                  GestureDetector(
+                      onTap: () async {
+                        final String message = msgController.text;
+                        msgController.clear();
+                        await firestore.collection('rooms/$roomId/chats/').add({
+                          'text': message,
+                          'user': currentUser.uid,
+                          'createdAt': Timestamp.now(),
+                        });
+                      },
+                      child: Icon(Icons.send)),
                 ],
               ),
             ),
@@ -101,9 +143,18 @@ class ChatScreen extends StatelessWidget {
 }
 
 class ChatBubble extends StatelessWidget {
-  const ChatBubble({Key key, @required this.isSentMsg}) : super(key: key);
+  const ChatBubble({
+    Key key,
+    @required this.text,
+    @required this.isSentMsg,
+    @required this.uid,
+    @required this.timestamp,
+  }) : super(key: key);
 
+  final String text;
   final isSentMsg;
+  final uid;
+  final Timestamp timestamp;
 
   @override
   Widget build(BuildContext context) {
@@ -129,19 +180,23 @@ class ChatBubble extends StatelessWidget {
         ),
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'User ID',
-                style: TextStyle(
-                    color: isSentMsg
-                        ? Theme.of(context).accentColor
-                        : Color(0xFFFFBF59)),
+              Expanded(
+                child: Text(
+                  uid.substring(0, 6),
+                  style: TextStyle(
+                      color: isSentMsg
+                          ? Theme.of(context).accentColor
+                          : Color(0xFFFFBF59)),
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
               Text(
-                'today, 10:46 PM',
+                timestamp.toDate().toLocal().toString().substring(0, 16),
                 style: TextStyle(
                   fontSize: 12.0,
                   fontFamily: 'HelveticaNeueLight',
@@ -151,7 +206,7 @@ class ChatBubble extends StatelessWidget {
           ),
           SizedBox(height: 10.0),
           Text(
-            'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
+            text,
             style: TextStyle(fontFamily: 'HelveticaNeueLight', fontSize: 15.0),
           ),
         ],
