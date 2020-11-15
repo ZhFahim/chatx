@@ -119,7 +119,6 @@ class ChatScreen extends StatelessWidget {
                   ),
                   SizedBox(width: 10.0),
                   FlatButton(
-                    color: Colors.white,
                     padding: EdgeInsets.all(0),
                     textColor: Theme.of(context).accentColor,
                     child: Icon(Icons.send),
