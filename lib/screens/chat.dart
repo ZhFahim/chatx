@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:chatx/screens/roomMenu.dart';
 
 FirebaseFirestore firestore = FirebaseFirestore.instance;
 FirebaseAuth auth = FirebaseAuth.instance;
@@ -28,14 +29,39 @@ class ChatScreen extends StatelessWidget {
                     padding: const EdgeInsets.only(left: 20.0),
                     child: Text(
                       'Room ${roomId.substring(0, 8)}',
-                      style: TextStyle(color: Color(0xFFFFBF59), fontSize: 28.0),
+                      style:
+                          TextStyle(color: Color(0xFFFFBF59), fontSize: 28.0),
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ),
                 Padding(
                   padding: const EdgeInsets.only(right: 20.0),
-                  child: Icon(Icons.menu),
+                  child: GestureDetector(
+                    child: Icon(Icons.menu),
+                    onTap: () {
+                      Navigator.of(context).push(
+                        PageRouteBuilder(
+                          pageBuilder:
+                              (context, animation, secondaryAnimation) {
+                            return RoomMenuScreen(roomId);
+                          },
+                          transitionsBuilder:
+                              (context, animation, secondaryAnimation, child) =>
+                                  Align(
+                            child: SlideTransition(
+                              position: Tween<Offset>(
+                                      begin: const Offset(1, 0),
+                                      end: Offset.zero)
+                                  .animate(animation),
+                              child: child,
+                            ),
+                          ),
+                          transitionDuration: Duration(milliseconds: 300),
+                        ),
+                      );
+                    },
+                  ),
                 )
               ],
             ),
@@ -49,7 +75,10 @@ class ChatScreen extends StatelessWidget {
             ),
             Expanded(
               child: StreamBuilder(
-                stream: firestore.collection('rooms/$roomId/chats').orderBy('createdAt', descending: true).snapshots(),
+                stream: firestore
+                    .collection('rooms/$roomId/chats')
+                    .orderBy('createdAt', descending: true)
+                    .snapshots(),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return Center(child: CircularProgressIndicator());
@@ -123,7 +152,7 @@ class ChatScreen extends StatelessWidget {
                     textColor: Theme.of(context).accentColor,
                     child: Icon(Icons.send),
                     onPressed: () async {
-                      final String message = msgController.text;
+                      final String message = msgController.text.trim();
                       if (message == '') {
                         return;
                       }
@@ -191,7 +220,10 @@ class ChatBubble extends StatelessWidget {
               Expanded(
                 child: Text(
                   uid.substring(0, 6),
-                  style: TextStyle(color: isSentMsg ? Theme.of(context).accentColor : Color(0xFFFFBF59)),
+                  style: TextStyle(
+                      color: isSentMsg
+                          ? Theme.of(context).accentColor
+                          : Color(0xFFFFBF59)),
                   overflow: TextOverflow.ellipsis,
                 ),
               ),

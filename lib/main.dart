@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'screens/home.dart';
 import 'screens/chat.dart';
+import 'package:chatx/screens/roomMenu.dart';
 
 void main() {
   runApp(ChatX());
@@ -30,6 +31,8 @@ class ChatX extends StatelessWidget {
         '/': (context) => HomeScreen(),
         'chatScreen': (context) =>
             ChatScreen(ModalRoute.of(context).settings.arguments),
+        'roomMenuScreen': (context) =>
+            RoomMenuScreen(ModalRoute.of(context).settings.arguments),
       },
     );
   }
