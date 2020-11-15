@@ -17,13 +17,8 @@ class ChatX extends StatelessWidget {
         brightness: Brightness.dark,
         primarySwatch: Colors.blue,
         accentColor: Color(0xFF1AF79B),
-<<<<<<< HEAD
-        // canvasColor: Color(0xFF191A4D),
-        // appBarTheme: AppBarTheme(color: Color(0xFF191A4D), elevation: 0),
-=======
         canvasColor: Color(0xff191A4D),
         appBarTheme: AppBarTheme(color: Color(0xFF191A4D), elevation: 0),
->>>>>>> firebase-chat
         fontFamily: 'HelveticaNeue',
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
