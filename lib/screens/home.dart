@@ -8,7 +8,6 @@ FirebaseFirestore firestore = FirebaseFirestore.instance;
 FirebaseAuth auth = FirebaseAuth.instance;
 
 class HomeScreen extends StatelessWidget {
-  final TextEditingController roomIdController = TextEditingController();
   @override
   Widget build(BuildContext context) {
     Firebase.initializeApp();
@@ -60,153 +59,208 @@ class HomeScreen extends StatelessWidget {
                   itemCount: 3,
                   itemBuilder: (context, index) => ListTile(
                     title: Text('Room ${index + 1}'),
-                    subtitle: Text('ID: ${Random().nextInt(999999).toString()}'),
+                    subtitle:
+                        Text('ID: ${Random().nextInt(999999).toString()}'),
                     dense: true,
                   ),
                 ),
               ),
               SizedBox(height: 10.0),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                child: TextField(
-                  controller: roomIdController,
-                  decoration: InputDecoration(labelText: 'Enter Room ID'),
-                ),
-              ),
-              SizedBox(height: 10.0),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                child: FlatButton(
-                  padding: const EdgeInsets.symmetric(vertical: 15.0),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    'Join Room',
-                    style: TextStyle(color: Theme.of(context).canvasColor),
-                  ),
-                  color: Theme.of(context).accentColor,
-                  onPressed: () {
-                    FocusScope.of(context).unfocus();
-                    firestore
-                        .collection('rooms')
-                        .where('roomId', isEqualTo: roomIdController.text)
-                        .get()
-                        .then((result) {
-                      if (result.docs.isNotEmpty) {
-                        firestore
-                            .collection('rooms/${result.docs.first.id}/members')
-                            .get()
-                            .then((value) {
-                          if (value.size < 10) {
-                            auth.signOut().then((value) {
-                              auth.signInAnonymously().then((value) async {
-                                await firestore
-                                    .collection(
-                                        'rooms/${result.docs.first.id}/members')
-                                    .add({
-                                  'uid': auth.currentUser.uid,
-                                  'joinedAt': Timestamp.now(),
-                                });
-                                Navigator.pushNamed(
-                                  context,
-                                  'chatScreen',
-                                  arguments: result.docs.first.id,
-                                );
-                              });
-                            });
-                          } else {
-                            print('Maximum 10 members can enter in a room');
-                          }
-                        });
-                      } else {
-                        print('Room not found!');
-                      }
-                    });
-                  },
-                ),
-              ),
-              SizedBox(height: 5.0),
-              Expanded(
-                child: Align(
-                  alignment: Alignment.bottomCenter,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    height: 50.0,
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Expanded(
-                          flex: 5,
-                          child: FlatButton(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8.0),
-                            ),
-                            child: Text(
-                              'Create Room',
-                              style: TextStyle(color: Theme.of(context).canvasColor),
-                            ),
-                            color: Theme.of(context).accentColor,
-                            onPressed: () {
-                              // await firestore
-                              //     .collection('rooms')
-                              //     .where('roomId', isEqualTo: 'test')
-                              //     .get()
-                              //     .then((value) {
-                              //   value.docs.forEach((element) {
-                              //     print(element.id);
-                              //   });
-                              // });
-                              auth.signOut().then((value) {
-                                auth.signInAnonymously().then((value) async {
-                                  print(value.user);
-                                  var room =
-                                      await firestore.collection('rooms').add(
-                                    {},
-                                  );
-                                  await firestore
-                                      .collection('rooms/${room.id}/members')
-                                      .add({
-                                    'uid': auth.currentUser.uid,
-                                    'joinedAt': Timestamp.now(),
-                                  });
-                                  await firestore
-                                      .doc('rooms/${room.id}')
-                                      .update(
-                                          {'roomId': room.id.substring(0, 8)});
-                                  Navigator.pushNamed(
-                                    context,
-                                    'chatScreen',
-                                    arguments: room.id,
-                                  );
-                                });
-                              });
-                            },
-                          ),
-                        ),
-                        SizedBox(width: 5.0),
-                        Expanded(
-                          child: FlatButton(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8.0),
-                            ),
-                            child: Icon(
-                              Icons.settings,
-                              color: Theme.of(context).canvasColor,
-                            ),
-                            color: Theme.of(context).accentColor,
-                            onPressed: () {},
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
+              EnterRoomSection(),
             ],
           ),
         ),
       ),
+    );
+  }
+}
+
+class EnterRoomSection extends StatefulWidget {
+  const EnterRoomSection({Key key}) : super(key: key);
+
+  @override
+  _EnterRoomSectionState createState() => _EnterRoomSectionState();
+}
+
+class _EnterRoomSectionState extends State<EnterRoomSection> {
+  final TextEditingController roomIdController = TextEditingController();
+  bool isLoading = false;
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: isLoading
+          ? Center(child: CircularProgressIndicator())
+          : Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                  child: TextField(
+                    controller: roomIdController,
+                    decoration: InputDecoration(labelText: 'Enter Room ID'),
+                  ),
+                ),
+                SizedBox(height: 10.0),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                  child: FlatButton(
+                    padding: const EdgeInsets.symmetric(vertical: 15.0),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      'Join Room',
+                      style: TextStyle(color: Theme.of(context).canvasColor),
+                    ),
+                    color: Theme.of(context).accentColor,
+                    onPressed: () {
+                      setState(() {
+                        isLoading = true;
+                      });
+                      FocusScope.of(context).unfocus();
+                      firestore
+                          .collection('rooms')
+                          .where('roomId',
+                              isEqualTo: roomIdController.text.trim())
+                          .get()
+                          .then((result) {
+                        if (result.docs.isNotEmpty) {
+                          firestore
+                              .collection(
+                                  'rooms/${result.docs.first.id}/members')
+                              .get()
+                              .then((value) {
+                            if (value.size < 10) {
+                              auth.signOut().then((value) {
+                                auth.signInAnonymously().then((value) async {
+                                  await firestore
+                                      .collection(
+                                          'rooms/${result.docs.first.id}/members')
+                                      .add({
+                                    'uid': auth.currentUser.uid,
+                                    'joinedAt': Timestamp.now(),
+                                  });
+
+                                  Navigator.pushNamed(
+                                    context,
+                                    'chatScreen',
+                                    arguments: result.docs.first.id,
+                                  ).then((value) {
+                                    setState(() {
+                                      isLoading = false;
+                                    });
+                                  });
+                                });
+                              });
+                            } else {
+                              setState(() {
+                                isLoading = false;
+                              });
+                              Scaffold.of(context).showSnackBar(SnackBar(
+                                content: Text(
+                                    'Maximum 10 members can enter in a room'),
+                              ));
+                            }
+                          });
+                        } else {
+                          setState(() {
+                            isLoading = false;
+                          });
+                          Scaffold.of(context).showSnackBar(SnackBar(
+                            content: Text('Room not found!'),
+                          ));
+                        }
+                      });
+                    },
+                  ),
+                ),
+                SizedBox(height: 5.0),
+                Expanded(
+                  child: Align(
+                    alignment: Alignment.bottomCenter,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      height: 50.0,
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Expanded(
+                            flex: 5,
+                            child: FlatButton(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8.0),
+                              ),
+                              child: Text(
+                                'Create Room',
+                                style: TextStyle(
+                                    color: Theme.of(context).canvasColor),
+                              ),
+                              color: Theme.of(context).accentColor,
+                              onPressed: () {
+                                setState(() {
+                                  isLoading = true;
+                                });
+                                // await firestore
+                                //     .collection('rooms')
+                                //     .where('roomId', isEqualTo: 'test')
+                                //     .get()
+                                //     .then((value) {
+                                //   value.docs.forEach((element) {
+                                //     print(element.id);
+                                //   });
+                                // });
+                                auth.signOut().then((value) {
+                                  auth.signInAnonymously().then((value) async {
+                                    var room =
+                                        await firestore.collection('rooms').add(
+                                      {},
+                                    );
+                                    await firestore
+                                        .collection('rooms/${room.id}/members')
+                                        .add({
+                                      'uid': auth.currentUser.uid,
+                                      'joinedAt': Timestamp.now(),
+                                    });
+                                    await firestore
+                                        .doc('rooms/${room.id}')
+                                        .update({
+                                      'roomId': room.id.substring(0, 8)
+                                    });
+                                    Navigator.pushNamed(
+                                      context,
+                                      'chatScreen',
+                                      arguments: room.id,
+                                    ).then((value) {
+                                      setState(() {
+                                        isLoading = false;
+                                      });
+                                    });
+                                  });
+                                });
+                              },
+                            ),
+                          ),
+                          SizedBox(width: 5.0),
+                          Expanded(
+                            child: FlatButton(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8.0),
+                              ),
+                              child: Icon(
+                                Icons.settings,
+                                color: Theme.of(context).canvasColor,
+                              ),
+                              color: Theme.of(context).accentColor,
+                              onPressed: () {},
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
     );
   }
 }

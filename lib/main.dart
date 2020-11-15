@@ -20,11 +20,16 @@ class ChatX extends StatelessWidget {
         canvasColor: Color(0xFF191A4D),
         appBarTheme: AppBarTheme(color: Color(0xFF191A4D), elevation: 0),
         fontFamily: 'HelveticaNeue',
+        snackBarTheme: SnackBarThemeData(
+          backgroundColor: Color(0xFF000133),
+          contentTextStyle: TextStyle(color: Colors.white),
+        ),
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
       routes: {
         '/': (context) => HomeScreen(),
-        'chatScreen': (context) => ChatScreen(ModalRoute.of(context).settings.arguments),
+        'chatScreen': (context) =>
+            ChatScreen(ModalRoute.of(context).settings.arguments),
       },
     );
   }
