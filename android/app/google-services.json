@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "199356532917",
+    "firebase_url": "https://chatx-f8b25.firebaseio.com",
+    "project_id": "chatx-f8b25",
+    "storage_bucket": "chatx-f8b25.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:199356532917:android:1976b7b28219dd4f2616fc",
+        "android_client_info": {
+          "package_name": "com.fame.chatx"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "199356532917-3iir761m0ug4i9qj4knv63shqu3sarqv.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCGvanrRiIPI3gPvz91skjSsOqOqahJhlo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "199356532917-3iir761m0ug4i9qj4knv63shqu3sarqv.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
