@@ -18,7 +18,7 @@ class ChatX extends StatelessWidget {
         primarySwatch: Colors.blue,
         accentColor: Color(0xFF1AF79B),
         canvasColor: Color(0xff191A4D),
-        appBarTheme: AppBarTheme(color: Color(0xFF2E2F8B), elevation: 0),
+        appBarTheme: AppBarTheme(color: Color(0xff191A4D), elevation: 0),
         fontFamily: 'HelveticaNeue',
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
