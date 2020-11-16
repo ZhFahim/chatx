@@ -15,159 +15,157 @@ class ChatScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            SizedBox(height: 20.0),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return WillPopScope(
+      onWillPop: () async => false,
+      child: GestureDetector(
+        onTap: () {
+          FocusScope.of(context).requestFocus(FocusNode());
+        },
+        child: Scaffold(
+          body: SafeArea(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.only(left: 20.0),
-                    child: Text(
-                      'Room ${roomId.substring(0, 8)}',
-                      style:
-                          TextStyle(color: Color(0xFFFFBF59), fontSize: 28.0),
-                      overflow: TextOverflow.ellipsis,
+                SizedBox(height: 20.0),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.only(left: 20.0),
+                        child: Text(
+                          'Room ${roomId.substring(0, 8)}',
+                          style: TextStyle(color: Color(0xFFFFBF59), fontSize: 28.0),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
                     ),
-                  ),
+                    Padding(
+                      padding: const EdgeInsets.only(right: 20.0),
+                      child: GestureDetector(
+                        child: Icon(Icons.menu),
+                        onTap: () {
+                          Navigator.of(context).push(
+                            PageRouteBuilder(
+                              pageBuilder: (context, animation, secondaryAnimation) {
+                                return RoomMenuScreen(roomId);
+                              },
+                              transitionsBuilder: (context, animation, secondaryAnimation, child) => Align(
+                                child: SlideTransition(
+                                  position: Tween<Offset>(begin: const Offset(1, 0), end: Offset.zero).animate(animation),
+                                  child: child,
+                                ),
+                              ),
+                              transitionDuration: Duration(milliseconds: 300),
+                            ),
+                          );
+                        },
+                      ),
+                    )
+                  ],
                 ),
                 Padding(
-                  padding: const EdgeInsets.only(right: 20.0),
-                  child: GestureDetector(
-                    child: Icon(Icons.menu),
-                    onTap: () {
-                      Navigator.of(context).push(
-                        PageRouteBuilder(
-                          pageBuilder:
-                              (context, animation, secondaryAnimation) {
-                            return RoomMenuScreen(roomId);
-                          },
-                          transitionsBuilder:
-                              (context, animation, secondaryAnimation, child) =>
-                                  Align(
-                            child: SlideTransition(
-                              position: Tween<Offset>(
-                                      begin: const Offset(1, 0),
-                                      end: Offset.zero)
-                                  .animate(animation),
-                              child: child,
+                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                  child: Divider(
+                    color: Colors.white,
+                    height: 30.0,
+                    thickness: 0.8,
+                  ),
+                ),
+                Expanded(
+                  child: StreamBuilder(
+                    stream: firestore.collection('rooms/$roomId/chats').orderBy('createdAt', descending: true).snapshots(),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return Center(child: CircularProgressIndicator());
+                      } else {
+                        final chats = snapshot.data.documents;
+                        return ListView.builder(
+                          reverse: true,
+                          padding: EdgeInsets.symmetric(vertical: 20.0),
+                          itemCount: chats.length,
+                          itemBuilder: (context, index) =>
+                              // children: [
+                              //   Padding(
+                              //     padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                              //     child: Text('Beginning of the converstaion'),
+                              //   ),
+                              //   SizedBox(height: 5.0),
+                              //   Padding(
+                              //     padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                              //     child: Text('Wednesday, November 11, 10:34 PM'),
+                              //   ),
+                              //   SizedBox(height: 20.0),
+                              ChatBubble(
+                            text: chats[index]['text'],
+                            isSentMsg: chats[index]['user'] == currentUser.uid,
+                            uid: chats[index]['user'],
+                            timestamp: chats[index]['createdAt'],
+                          ),
+                        );
+                      }
+                    },
+                  ),
+                ),
+                Container(
+                  margin: EdgeInsets.symmetric(vertical: 10.0),
+                  padding: EdgeInsets.symmetric(horizontal: 20.0),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: msgController,
+                          style: TextStyle(
+                            color: Colors.black,
+                            fontFamily: 'HelveticaNeueLight',
+                            fontWeight: FontWeight.bold,
+                          ),
+                          decoration: InputDecoration(
+                            hintText: 'Type your message...',
+                            hintStyle: TextStyle(
+                              color: Colors.grey,
+                              fontFamily: 'HelveticaNeueLight',
+                            ),
+                            filled: true,
+                            fillColor: Colors.white,
+                            contentPadding: EdgeInsets.symmetric(horizontal: 10.0),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(5.0),
+                            ),
+                            focusedBorder: UnderlineInputBorder(
+                              borderRadius: BorderRadius.circular(5.0),
+                              borderSide: BorderSide(
+                                color: Theme.of(context).accentColor,
+                                width: 5.0,
+                              ),
                             ),
                           ),
-                          transitionDuration: Duration(milliseconds: 300),
                         ),
-                      );
-                    },
+                      ),
+                      SizedBox(width: 10.0),
+                      FlatButton(
+                        padding: EdgeInsets.all(0),
+                        textColor: Theme.of(context).accentColor,
+                        child: Icon(Icons.send),
+                        onPressed: () async {
+                          final String message = msgController.text.trim();
+                          if (message == '') {
+                            return;
+                          }
+                          msgController.clear();
+                          await firestore.collection('rooms/$roomId/chats/').add({
+                            'text': message,
+                            'user': currentUser.uid,
+                            'createdAt': Timestamp.now(),
+                          });
+                        },
+                      ),
+                    ],
                   ),
-                )
+                ),
               ],
             ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0),
-              child: Divider(
-                color: Colors.white,
-                height: 30.0,
-                thickness: 0.8,
-              ),
-            ),
-            Expanded(
-              child: StreamBuilder(
-                stream: firestore
-                    .collection('rooms/$roomId/chats')
-                    .orderBy('createdAt', descending: true)
-                    .snapshots(),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return Center(child: CircularProgressIndicator());
-                  } else {
-                    final chats = snapshot.data.documents;
-                    return ListView.builder(
-                      reverse: true,
-                      padding: EdgeInsets.symmetric(vertical: 20.0),
-                      itemCount: chats.length,
-                      itemBuilder: (context, index) =>
-                          // children: [
-                          //   Padding(
-                          //     padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                          //     child: Text('Beginning of the converstaion'),
-                          //   ),
-                          //   SizedBox(height: 5.0),
-                          //   Padding(
-                          //     padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                          //     child: Text('Wednesday, November 11, 10:34 PM'),
-                          //   ),
-                          //   SizedBox(height: 20.0),
-                          ChatBubble(
-                        text: chats[index]['text'],
-                        isSentMsg: chats[index]['user'] == currentUser.uid,
-                        uid: chats[index]['user'],
-                        timestamp: chats[index]['createdAt'],
-                      ),
-                    );
-                  }
-                },
-              ),
-            ),
-            Container(
-              margin: EdgeInsets.symmetric(vertical: 10.0),
-              padding: EdgeInsets.symmetric(horizontal: 20.0),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: msgController,
-                      style: TextStyle(
-                        color: Colors.black,
-                        fontFamily: 'HelveticaNeueLight',
-                        fontWeight: FontWeight.bold,
-                      ),
-                      decoration: InputDecoration(
-                        hintText: 'Type your message...',
-                        hintStyle: TextStyle(
-                          color: Colors.grey,
-                          fontFamily: 'HelveticaNeueLight',
-                        ),
-                        filled: true,
-                        fillColor: Colors.white,
-                        contentPadding: EdgeInsets.symmetric(horizontal: 10.0),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(5.0),
-                        ),
-                        focusedBorder: UnderlineInputBorder(
-                          borderRadius: BorderRadius.circular(5.0),
-                          borderSide: BorderSide(
-                            color: Theme.of(context).accentColor,
-                            width: 5.0,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  SizedBox(width: 10.0),
-                  FlatButton(
-                    padding: EdgeInsets.all(0),
-                    textColor: Theme.of(context).accentColor,
-                    child: Icon(Icons.send),
-                    onPressed: () async {
-                      final String message = msgController.text.trim();
-                      if (message == '') {
-                        return;
-                      }
-                      msgController.clear();
-                      await firestore.collection('rooms/$roomId/chats/').add({
-                        'text': message,
-                        'user': currentUser.uid,
-                        'createdAt': Timestamp.now(),
-                      });
-                    },
-                  ),
-                ],
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );
@@ -220,10 +218,7 @@ class ChatBubble extends StatelessWidget {
               Expanded(
                 child: Text(
                   uid.substring(0, 6),
-                  style: TextStyle(
-                      color: isSentMsg
-                          ? Theme.of(context).accentColor
-                          : Color(0xFFFFBF59)),
+                  style: TextStyle(color: isSentMsg ? Theme.of(context).accentColor : Color(0xFFFFBF59)),
                   overflow: TextOverflow.ellipsis,
                 ),
               ),

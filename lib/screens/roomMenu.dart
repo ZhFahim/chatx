@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:share/share.dart';
+import 'package:chatx/screens/home.dart';
 
 class RoomMenuScreen extends StatelessWidget {
   RoomMenuScreen(this.roomId);
@@ -29,6 +30,13 @@ class RoomMenuScreen extends StatelessWidget {
                   children: [
                     ListTile(
                       contentPadding: EdgeInsets.zero,
+                      title: Text('Dismiss Menu'),
+                      onTap: () {
+                        Navigator.pop(context);
+                      },
+                    ),
+                    ListTile(
+                      contentPadding: EdgeInsets.zero,
                       title: Text('Invite people'),
                       onTap: () {
                         Share.share(
@@ -43,6 +51,9 @@ class RoomMenuScreen extends StatelessWidget {
                         'Leave room',
                         style: TextStyle(color: Colors.red),
                       ),
+                      onTap: () {
+                        Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => HomeScreen()), (route) => false);
+                      },
                     ),
                   ],
                 ),

@@ -11,63 +11,67 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Firebase.initializeApp();
-    return Scaffold(
-      resizeToAvoidBottomInset: false,
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 0.0, vertical: 15.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: <Widget>[
-              SizedBox(height: 10.0),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                child: Text(
-                  'Welcome',
-                  style: TextStyle(fontSize: 28.0),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                child: Divider(
-                  color: Colors.white,
-                  height: 30.0,
-                  thickness: 0.8,
-                ),
-              ),
-              SizedBox(height: 20.0),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                child: Text(
-                  'Active Rooms',
-                  style: TextStyle(fontSize: 16.0),
-                ),
-              ),
-              SizedBox(height: 15.0),
-              Container(
-                height: 200.0,
-                margin: EdgeInsets.only(left: 20.0),
-                decoration: BoxDecoration(
-                  color: Color(0xFF000133),
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(8.0),
-                    bottomLeft: Radius.circular(8.0),
+    return GestureDetector(
+      onTap: () {
+        FocusScope.of(context).requestFocus(FocusNode());
+      },
+      child: Scaffold(
+        resizeToAvoidBottomInset: false,
+        body: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 0.0, vertical: 15.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: <Widget>[
+                SizedBox(height: 10.0),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                  child: Text(
+                    'Welcome',
+                    style: TextStyle(fontSize: 28.0),
                   ),
                 ),
-                // Demo rooms
-                child: ListView.builder(
-                  itemCount: 3,
-                  itemBuilder: (context, index) => ListTile(
-                    title: Text('Room ${index + 1}'),
-                    subtitle:
-                        Text('ID: ${Random().nextInt(999999).toString()}'),
-                    dense: true,
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                  child: Divider(
+                    color: Colors.white,
+                    height: 30.0,
+                    thickness: 0.8,
                   ),
                 ),
-              ),
-              SizedBox(height: 10.0),
-              EnterRoomSection(),
-            ],
+                SizedBox(height: 20.0),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                  child: Text(
+                    'Active Rooms',
+                    style: TextStyle(fontSize: 16.0),
+                  ),
+                ),
+                SizedBox(height: 15.0),
+                Container(
+                  height: 200.0,
+                  margin: EdgeInsets.only(left: 20.0),
+                  decoration: BoxDecoration(
+                    color: Color(0xFF000133),
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(8.0),
+                      bottomLeft: Radius.circular(8.0),
+                    ),
+                  ),
+                  // Demo rooms
+                  child: ListView.builder(
+                    itemCount: 3,
+                    itemBuilder: (context, index) => ListTile(
+                      title: Text('Room ${index + 1}'),
+                      subtitle: Text('ID: ${Random().nextInt(999999).toString()}'),
+                      dense: true,
+                    ),
+                  ),
+                ),
+                SizedBox(height: 10.0),
+                EnterRoomSection(),
+              ],
+            ),
           ),
         ),
       ),
@@ -118,25 +122,13 @@ class _EnterRoomSectionState extends State<EnterRoomSection> {
                         isLoading = true;
                       });
                       FocusScope.of(context).unfocus();
-                      firestore
-                          .collection('rooms')
-                          .where('roomId',
-                              isEqualTo: roomIdController.text.trim())
-                          .get()
-                          .then((result) {
+                      firestore.collection('rooms').where('roomId', isEqualTo: roomIdController.text.trim()).get().then((result) {
                         if (result.docs.isNotEmpty) {
-                          firestore
-                              .collection(
-                                  'rooms/${result.docs.first.id}/members')
-                              .get()
-                              .then((value) {
+                          firestore.collection('rooms/${result.docs.first.id}/members').get().then((value) {
                             if (value.size < 10) {
                               auth.signOut().then((value) {
                                 auth.signInAnonymously().then((value) async {
-                                  await firestore
-                                      .collection(
-                                          'rooms/${result.docs.first.id}/members')
-                                      .add({
+                                  await firestore.collection('rooms/${result.docs.first.id}/members').add({
                                     'uid': auth.currentUser.uid,
                                     'joinedAt': Timestamp.now(),
                                   });
@@ -157,8 +149,7 @@ class _EnterRoomSectionState extends State<EnterRoomSection> {
                                 isLoading = false;
                               });
                               Scaffold.of(context).showSnackBar(SnackBar(
-                                content: Text(
-                                    'Maximum 10 members can enter in a room'),
+                                content: Text('Maximum 10 members can enter in a room'),
                               ));
                             }
                           });
@@ -192,8 +183,7 @@ class _EnterRoomSectionState extends State<EnterRoomSection> {
                               ),
                               child: Text(
                                 'Create Room',
-                                style: TextStyle(
-                                    color: Theme.of(context).canvasColor),
+                                style: TextStyle(color: Theme.of(context).canvasColor),
                               ),
                               color: Theme.of(context).accentColor,
                               onPressed: () {
@@ -211,21 +201,14 @@ class _EnterRoomSectionState extends State<EnterRoomSection> {
                                 // });
                                 auth.signOut().then((value) {
                                   auth.signInAnonymously().then((value) async {
-                                    var room =
-                                        await firestore.collection('rooms').add(
+                                    var room = await firestore.collection('rooms').add(
                                       {},
                                     );
-                                    await firestore
-                                        .collection('rooms/${room.id}/members')
-                                        .add({
+                                    await firestore.collection('rooms/${room.id}/members').add({
                                       'uid': auth.currentUser.uid,
                                       'joinedAt': Timestamp.now(),
                                     });
-                                    await firestore
-                                        .doc('rooms/${room.id}')
-                                        .update({
-                                      'roomId': room.id.substring(0, 8)
-                                    });
+                                    await firestore.doc('rooms/${room.id}').update({'roomId': room.id.substring(0, 8)});
                                     Navigator.pushNamed(
                                       context,
                                       'chatScreen',
