@@ -139,7 +139,6 @@ class _EnterRoomSectionState extends State<EnterRoomSection> {
                             if (value.size < 10) {
                               auth.signOut().then((value) {
                                 auth.signInAnonymously().then((value) async {
-                                  print(auth.currentUser.uid);
                                   await firestore
                                       .collection(
                                           'rooms/${result.docs.first.id}/members')
@@ -147,7 +146,15 @@ class _EnterRoomSectionState extends State<EnterRoomSection> {
                                     'uid': auth.currentUser.uid,
                                     'joinedAt': Timestamp.now(),
                                   });
-
+                                  await firestore
+                                      .collection(
+                                          'rooms/${result.docs.first.id}/chats')
+                                      .add({
+                                    'text':
+                                        '${auth.currentUser.uid.substring(0, 6)} has entered the room',
+                                    'user': 'system',
+                                    'createdAt': Timestamp.now(),
+                                  });
                                   Navigator.pushNamed(
                                     context,
                                     'chatScreen',
@@ -232,6 +239,14 @@ class _EnterRoomSectionState extends State<EnterRoomSection> {
                                         .doc('rooms/${room.id}')
                                         .update({
                                       'roomId': room.id.substring(0, 8)
+                                    });
+                                    await firestore
+                                        .collection('rooms/${room.id}/chats')
+                                        .add({
+                                      'text':
+                                          '${auth.currentUser.uid.substring(0, 6)} has created the room',
+                                      'user': 'system',
+                                      'createdAt': Timestamp.now(),
                                     });
                                     Navigator.pushNamed(
                                       context,

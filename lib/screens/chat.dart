@@ -6,7 +6,6 @@ import 'package:chatx/widgets/leaveAlert.dart';
 
 FirebaseFirestore firestore = FirebaseFirestore.instance;
 FirebaseAuth auth = FirebaseAuth.instance;
-final currentUser = auth.currentUser;
 
 class ChatScreen extends StatelessWidget {
   final TextEditingController msgController = TextEditingController();
@@ -112,7 +111,8 @@ class ChatScreen extends StatelessWidget {
                               //   SizedBox(height: 20.0),
                               ChatBubble(
                             text: chats[index]['text'],
-                            isSentMsg: chats[index]['user'] == currentUser.uid,
+                            isSentMsg:
+                                chats[index]['user'] == auth.currentUser.uid,
                             uid: chats[index]['user'],
                             timestamp: chats[index]['createdAt'],
                           ),
@@ -172,7 +172,7 @@ class ChatScreen extends StatelessWidget {
                               .collection('rooms/$roomId/chats/')
                               .add({
                             'text': message,
-                            'user': currentUser.uid,
+                            'user': auth.currentUser.uid,
                             'createdAt': Timestamp.now(),
                           });
                         },
@@ -205,6 +205,25 @@ class ChatBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (uid == 'system') {
+      return Container(
+        margin: EdgeInsets.only(
+          right: 20.0,
+          left: 20.0,
+          bottom: 15.0,
+        ),
+        padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
+        decoration: BoxDecoration(
+          color: Color(0xFF000133),
+          borderRadius: BorderRadius.circular(10.0),
+        ),
+        child: Text(
+          text,
+          style: TextStyle(color: Color(0xFFFFBF59)),
+          textAlign: TextAlign.center,
+        ),
+      );
+    }
     return Container(
       margin: EdgeInsets.only(
         right: isSentMsg ? 0 : 20.0,

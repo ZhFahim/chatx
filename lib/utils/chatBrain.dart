@@ -25,8 +25,15 @@ class ChatBrain {
               .doc('/rooms/$roomId/members/${value.docs[0].id}')
               .delete()
               .then((value) {
-            auth.currentUser.delete().then((value) {
-              Navigator.popUntil(context, ModalRoute.withName('/'));
+            firestore.collection('rooms/$roomId/chats').add({
+              'text':
+                  '${auth.currentUser.uid.substring(0, 6)} has left the room',
+              'user': 'system',
+              'createdAt': Timestamp.now(),
+            }).then((value) {
+              auth.currentUser.delete().then((value) {
+                Navigator.popUntil(context, ModalRoute.withName('/'));
+              });
             });
           });
         });
