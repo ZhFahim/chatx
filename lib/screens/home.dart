@@ -19,7 +19,8 @@ class HomeScreen extends StatelessWidget {
         resizeToAvoidBottomInset: false,
         body: SafeArea(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 0.0, vertical: 15.0),
+            padding:
+                const EdgeInsets.symmetric(horizontal: 0.0, vertical: 15.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: <Widget>[
@@ -63,7 +64,8 @@ class HomeScreen extends StatelessWidget {
                     itemCount: 3,
                     itemBuilder: (context, index) => ListTile(
                       title: Text('Room ${index + 1}'),
-                      subtitle: Text('ID: ${Random().nextInt(999999).toString()}'),
+                      subtitle:
+                          Text('ID: ${Random().nextInt(999999).toString()}'),
                       dense: true,
                     ),
                   ),
@@ -122,13 +124,26 @@ class _EnterRoomSectionState extends State<EnterRoomSection> {
                         isLoading = true;
                       });
                       FocusScope.of(context).unfocus();
-                      firestore.collection('rooms').where('roomId', isEqualTo: roomIdController.text.trim()).get().then((result) {
+                      firestore
+                          .collection('rooms')
+                          .where('roomId',
+                              isEqualTo: roomIdController.text.trim())
+                          .get()
+                          .then((result) {
                         if (result.docs.isNotEmpty) {
-                          firestore.collection('rooms/${result.docs.first.id}/members').get().then((value) {
+                          firestore
+                              .collection(
+                                  'rooms/${result.docs.first.id}/members')
+                              .get()
+                              .then((value) {
                             if (value.size < 10) {
                               auth.signOut().then((value) {
                                 auth.signInAnonymously().then((value) async {
-                                  await firestore.collection('rooms/${result.docs.first.id}/members').add({
+                                  print(auth.currentUser.uid);
+                                  await firestore
+                                      .collection(
+                                          'rooms/${result.docs.first.id}/members')
+                                      .add({
                                     'uid': auth.currentUser.uid,
                                     'joinedAt': Timestamp.now(),
                                   });
@@ -149,7 +164,8 @@ class _EnterRoomSectionState extends State<EnterRoomSection> {
                                 isLoading = false;
                               });
                               Scaffold.of(context).showSnackBar(SnackBar(
-                                content: Text('Maximum 10 members can enter in a room'),
+                                content: Text(
+                                    'Maximum 10 members can enter in a room'),
                               ));
                             }
                           });
@@ -183,7 +199,8 @@ class _EnterRoomSectionState extends State<EnterRoomSection> {
                               ),
                               child: Text(
                                 'Create Room',
-                                style: TextStyle(color: Theme.of(context).canvasColor),
+                                style: TextStyle(
+                                    color: Theme.of(context).canvasColor),
                               ),
                               color: Theme.of(context).accentColor,
                               onPressed: () {
@@ -201,14 +218,21 @@ class _EnterRoomSectionState extends State<EnterRoomSection> {
                                 // });
                                 auth.signOut().then((value) {
                                   auth.signInAnonymously().then((value) async {
-                                    var room = await firestore.collection('rooms').add(
+                                    var room =
+                                        await firestore.collection('rooms').add(
                                       {},
                                     );
-                                    await firestore.collection('rooms/${room.id}/members').add({
+                                    await firestore
+                                        .collection('rooms/${room.id}/members')
+                                        .add({
                                       'uid': auth.currentUser.uid,
                                       'joinedAt': Timestamp.now(),
                                     });
-                                    await firestore.doc('rooms/${room.id}').update({'roomId': room.id.substring(0, 8)});
+                                    await firestore
+                                        .doc('rooms/${room.id}')
+                                        .update({
+                                      'roomId': room.id.substring(0, 8)
+                                    });
                                     Navigator.pushNamed(
                                       context,
                                       'chatScreen',

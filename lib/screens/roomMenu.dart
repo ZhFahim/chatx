@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:share/share.dart';
-import 'package:chatx/screens/home.dart';
+import 'package:chatx/widgets/leaveAlert.dart';
 
 class RoomMenuScreen extends StatelessWidget {
   RoomMenuScreen(this.roomId);
@@ -15,10 +15,21 @@ class RoomMenuScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               SizedBox(height: 20.0),
-              Text(
-                'Room ${roomId.substring(0, 8)}',
-                style: TextStyle(color: Color(0xFFFFBF59), fontSize: 28.0),
-                overflow: TextOverflow.ellipsis,
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      'Room ${roomId.substring(0, 8)}',
+                      style:
+                          TextStyle(color: Color(0xFFFFBF59), fontSize: 28.0),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  GestureDetector(
+                    child: Icon(Icons.close),
+                    onTap: () => Navigator.pop(context),
+                  ),
+                ],
               ),
               Divider(
                 color: Colors.white,
@@ -28,13 +39,6 @@ class RoomMenuScreen extends StatelessWidget {
               Expanded(
                 child: ListView(
                   children: [
-                    ListTile(
-                      contentPadding: EdgeInsets.zero,
-                      title: Text('Dismiss Menu'),
-                      onTap: () {
-                        Navigator.pop(context);
-                      },
-                    ),
                     ListTile(
                       contentPadding: EdgeInsets.zero,
                       title: Text('Invite people'),
@@ -51,9 +55,10 @@ class RoomMenuScreen extends StatelessWidget {
                         'Leave room',
                         style: TextStyle(color: Colors.red),
                       ),
-                      onTap: () {
-                        Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => HomeScreen()), (route) => false);
-                      },
+                      onTap: () => showDialog(
+                        context: context,
+                        builder: (context) => LeaveAlert(roomId: roomId),
+                      ),
                     ),
                   ],
                 ),

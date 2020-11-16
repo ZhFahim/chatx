@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:chatx/screens/roomMenu.dart';
+import 'package:chatx/widgets/leaveAlert.dart';
 
 FirebaseFirestore firestore = FirebaseFirestore.instance;
 FirebaseAuth auth = FirebaseAuth.instance;
@@ -16,7 +17,10 @@ class ChatScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
-      onWillPop: () async => false,
+      onWillPop: () async => showDialog(
+        context: context,
+        builder: (context) => LeaveAlert(roomId: roomId),
+      ),
       child: GestureDetector(
         onTap: () {
           FocusScope.of(context).requestFocus(FocusNode());
@@ -35,7 +39,8 @@ class ChatScreen extends StatelessWidget {
                         padding: const EdgeInsets.only(left: 20.0),
                         child: Text(
                           'Room ${roomId.substring(0, 8)}',
-                          style: TextStyle(color: Color(0xFFFFBF59), fontSize: 28.0),
+                          style: TextStyle(
+                              color: Color(0xFFFFBF59), fontSize: 28.0),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
@@ -47,12 +52,18 @@ class ChatScreen extends StatelessWidget {
                         onTap: () {
                           Navigator.of(context).push(
                             PageRouteBuilder(
-                              pageBuilder: (context, animation, secondaryAnimation) {
+                              pageBuilder:
+                                  (context, animation, secondaryAnimation) {
                                 return RoomMenuScreen(roomId);
                               },
-                              transitionsBuilder: (context, animation, secondaryAnimation, child) => Align(
+                              transitionsBuilder: (context, animation,
+                                      secondaryAnimation, child) =>
+                                  Align(
                                 child: SlideTransition(
-                                  position: Tween<Offset>(begin: const Offset(1, 0), end: Offset.zero).animate(animation),
+                                  position: Tween<Offset>(
+                                          begin: const Offset(1, 0),
+                                          end: Offset.zero)
+                                      .animate(animation),
                                   child: child,
                                 ),
                               ),
@@ -74,7 +85,10 @@ class ChatScreen extends StatelessWidget {
                 ),
                 Expanded(
                   child: StreamBuilder(
-                    stream: firestore.collection('rooms/$roomId/chats').orderBy('createdAt', descending: true).snapshots(),
+                    stream: firestore
+                        .collection('rooms/$roomId/chats')
+                        .orderBy('createdAt', descending: true)
+                        .snapshots(),
                     builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting) {
                         return Center(child: CircularProgressIndicator());
@@ -128,7 +142,8 @@ class ChatScreen extends StatelessWidget {
                             ),
                             filled: true,
                             fillColor: Colors.white,
-                            contentPadding: EdgeInsets.symmetric(horizontal: 10.0),
+                            contentPadding:
+                                EdgeInsets.symmetric(horizontal: 10.0),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(5.0),
                             ),
@@ -153,7 +168,9 @@ class ChatScreen extends StatelessWidget {
                             return;
                           }
                           msgController.clear();
-                          await firestore.collection('rooms/$roomId/chats/').add({
+                          await firestore
+                              .collection('rooms/$roomId/chats/')
+                              .add({
                             'text': message,
                             'user': currentUser.uid,
                             'createdAt': Timestamp.now(),
@@ -218,7 +235,10 @@ class ChatBubble extends StatelessWidget {
               Expanded(
                 child: Text(
                   uid.substring(0, 6),
-                  style: TextStyle(color: isSentMsg ? Theme.of(context).accentColor : Color(0xFFFFBF59)),
+                  style: TextStyle(
+                      color: isSentMsg
+                          ? Theme.of(context).accentColor
+                          : Color(0xFFFFBF59)),
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
