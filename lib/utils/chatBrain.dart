@@ -10,9 +10,21 @@ class ChatBrain {
     firestore.collection('rooms/$roomId/members').get().then((value) {
       if (value.size == 1) {
         // When room has only 1 member
-        firestore.collection('rooms').doc(roomId).delete().then((value) {
-          auth.currentUser.delete().then((value) {
-            Navigator.popUntil(context, ModalRoute.withName('/'));
+        firestore.collection('rooms/$roomId/members').get().then((value) {
+          value.docs.forEach((element) {
+            firestore.doc('rooms/$roomId/members/${element.id}').delete();
+          });
+        }).then((value) {
+          firestore.collection('rooms/$roomId/chats').get().then((value) {
+            value.docs.forEach((element) {
+              firestore.doc('rooms/$roomId/chats/${element.id}').delete();
+            });
+          });
+        }).then((value) {
+          firestore.collection('rooms').doc(roomId).delete().then((value) {
+            auth.currentUser.delete().then((value) {
+              Navigator.popUntil(context, ModalRoute.withName('/'));
+            });
           });
         });
       } else {
