@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:chatx/screens/roomMenu.dart';
 import 'package:chatx/widgets/leaveAlert.dart';
+import 'package:chatx/constants.dart';
 
 FirebaseFirestore firestore = FirebaseFirestore.instance;
 FirebaseAuth auth = FirebaseAuth.instance;
@@ -111,9 +112,9 @@ class ChatScreen extends StatelessWidget {
                               //   SizedBox(height: 20.0),
                               ChatBubble(
                             text: chats[index]['text'],
+                            username: chats[index]['username'],
                             isSentMsg:
-                                chats[index]['user'] == auth.currentUser.uid,
-                            uid: chats[index]['user'],
+                                chats[index]['uid'] == auth.currentUser.uid,
                             timestamp: chats[index]['createdAt'],
                           ),
                         );
@@ -172,7 +173,8 @@ class ChatScreen extends StatelessWidget {
                               .collection('rooms/$roomId/chats/')
                               .add({
                             'text': message,
-                            'user': auth.currentUser.uid,
+                            'uid': auth.currentUser.uid,
+                            'username': auth.currentUser.displayName,
                             'createdAt': Timestamp.now(),
                           });
                         },
@@ -193,19 +195,19 @@ class ChatBubble extends StatelessWidget {
   const ChatBubble({
     Key key,
     @required this.text,
+    @required this.username,
     @required this.isSentMsg,
-    @required this.uid,
     @required this.timestamp,
   }) : super(key: key);
 
   final String text;
+  final String username;
   final bool isSentMsg;
-  final String uid;
   final Timestamp timestamp;
 
   @override
   Widget build(BuildContext context) {
-    if (uid == 'system') {
+    if (username == 'system') {
       return Container(
         margin: EdgeInsets.only(
           right: 20.0,
@@ -253,11 +255,8 @@ class ChatBubble extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  uid.substring(0, 6),
-                  style: TextStyle(
-                      color: isSentMsg
-                          ? Theme.of(context).accentColor
-                          : Color(0xFFFFBF59)),
+                  username,
+                  style: TextStyle(color: colors[username]),
                   overflow: TextOverflow.ellipsis,
                 ),
               ),

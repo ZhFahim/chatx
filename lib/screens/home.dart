@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:chatx/constants.dart';
 
 FirebaseFirestore firestore = FirebaseFirestore.instance;
 FirebaseAuth auth = FirebaseAuth.instance;
@@ -89,6 +90,20 @@ class EnterRoomSection extends StatefulWidget {
 }
 
 class _EnterRoomSectionState extends State<EnterRoomSection> {
+  Future<String> getUsername(String roomId) async {
+    List<String> joinedColors = [];
+    String color = colors.keys.toList()[Random().nextInt(colors.length)];
+    await firestore.collection('rooms/$roomId/members').get().then((value) {
+      value.docs.forEach((element) {
+        joinedColors.add(element.data()['username']);
+      });
+    });
+    while (joinedColors.contains(color)) {
+      color = colors.keys.toList()[Random().nextInt(colors.length)];
+    }
+    return color;
+  }
+
   final TextEditingController roomIdController = TextEditingController();
   bool isLoading = false;
   @override
@@ -139,20 +154,25 @@ class _EnterRoomSectionState extends State<EnterRoomSection> {
                             if (value.size < 10) {
                               auth.signOut().then((value) {
                                 auth.signInAnonymously().then((value) async {
+                                  String username =
+                                      await getUsername(result.docs.first.id);
+                                  await auth.currentUser
+                                      .updateProfile(displayName: username);
                                   await firestore
                                       .collection(
                                           'rooms/${result.docs.first.id}/members')
                                       .add({
                                     'uid': auth.currentUser.uid,
+                                    'username': username,
                                     'joinedAt': Timestamp.now(),
                                   });
                                   await firestore
                                       .collection(
                                           'rooms/${result.docs.first.id}/chats')
                                       .add({
-                                    'text':
-                                        '${auth.currentUser.uid.substring(0, 6)} has entered the room',
-                                    'user': 'system',
+                                    'text': '$username has entered the room',
+                                    'uid': auth.currentUser.uid,
+                                    'username': 'system',
                                     'createdAt': Timestamp.now(),
                                   });
                                   Navigator.pushNamed(
@@ -214,25 +234,21 @@ class _EnterRoomSectionState extends State<EnterRoomSection> {
                                 setState(() {
                                   isLoading = true;
                                 });
-                                // await firestore
-                                //     .collection('rooms')
-                                //     .where('roomId', isEqualTo: 'test')
-                                //     .get()
-                                //     .then((value) {
-                                //   value.docs.forEach((element) {
-                                //     print(element.id);
-                                //   });
-                                // });
                                 auth.signOut().then((value) {
                                   auth.signInAnonymously().then((value) async {
                                     var room =
                                         await firestore.collection('rooms').add(
                                       {},
                                     );
+                                    String username =
+                                        await getUsername(room.id);
+                                    await auth.currentUser
+                                        .updateProfile(displayName: username);
                                     await firestore
                                         .collection('rooms/${room.id}/members')
                                         .add({
                                       'uid': auth.currentUser.uid,
+                                      'username': username,
                                       'joinedAt': Timestamp.now(),
                                     });
                                     await firestore
@@ -243,9 +259,9 @@ class _EnterRoomSectionState extends State<EnterRoomSection> {
                                     await firestore
                                         .collection('rooms/${room.id}/chats')
                                         .add({
-                                      'text':
-                                          '${auth.currentUser.uid.substring(0, 6)} has created the room',
-                                      'user': 'system',
+                                      'text': '$username has created the room',
+                                      'uid': auth.currentUser.uid,
+                                      'username': 'system',
                                       'createdAt': Timestamp.now(),
                                     });
                                     Navigator.pushNamed(

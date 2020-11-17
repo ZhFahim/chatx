@@ -26,9 +26,9 @@ class ChatBrain {
               .delete()
               .then((value) {
             firestore.collection('rooms/$roomId/chats').add({
-              'text':
-                  '${auth.currentUser.uid.substring(0, 6)} has left the room',
-              'user': 'system',
+              'text': '${auth.currentUser.displayName} has left the room',
+              'uid': auth.currentUser.uid,
+              'username': 'system',
               'createdAt': Timestamp.now(),
             }).then((value) {
               auth.currentUser.delete().then((value) {
