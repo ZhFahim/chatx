@@ -170,6 +170,7 @@ class _EnterRoomSectionState extends State<EnterRoomSection> {
                                       .collection(
                                           'rooms/${result.docs.first.id}/chats')
                                       .add({
+                                    'type': 'alert',
                                     'text': '$username has entered the room',
                                     'uid': auth.currentUser.uid,
                                     'username': 'system',
@@ -259,6 +260,7 @@ class _EnterRoomSectionState extends State<EnterRoomSection> {
                                     await firestore
                                         .collection('rooms/${room.id}/chats')
                                         .add({
+                                      'type': 'alert',
                                       'text': '$username has created the room',
                                       'uid': auth.currentUser.uid,
                                       'username': 'system',

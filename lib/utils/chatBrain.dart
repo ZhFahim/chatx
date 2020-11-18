@@ -1,9 +1,11 @@
+import 'package:flutter/widgets.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 
 FirebaseFirestore firestore = FirebaseFirestore.instance;
 FirebaseAuth auth = FirebaseAuth.instance;
+FirebaseStorage storage = FirebaseStorage.instance;
 
 class ChatBrain {
   void leaveRoom(BuildContext context, {@required roomId}) {
@@ -21,7 +23,16 @@ class ChatBrain {
             });
           });
         }).then((value) {
-          firestore.collection('rooms').doc(roomId).delete().then((value) {
+          firestore
+              .collection('rooms')
+              .doc(roomId)
+              .delete()
+              .then((value) async {
+            await storage.ref('images/$roomId/').listAll().then((result) {
+              result.items.forEach((element) {
+                element.delete();
+              });
+            });
             auth.currentUser.delete().then((value) {
               Navigator.popUntil(context, ModalRoute.withName('/'));
             });
@@ -38,6 +49,7 @@ class ChatBrain {
               .delete()
               .then((value) {
             firestore.collection('rooms/$roomId/chats').add({
+              'type': 'alert',
               'text': '${auth.currentUser.displayName} has left the room',
               'uid': auth.currentUser.uid,
               'username': 'system',

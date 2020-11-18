@@ -1,12 +1,16 @@
+import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:chatx/screens/roomMenu.dart';
 import 'package:chatx/widgets/leaveAlert.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:chatx/constants.dart';
 
 FirebaseFirestore firestore = FirebaseFirestore.instance;
 FirebaseAuth auth = FirebaseAuth.instance;
+FirebaseStorage storage = FirebaseStorage.instance;
 
 class ChatScreen extends StatelessWidget {
   final TextEditingController msgController = TextEditingController();
@@ -98,19 +102,8 @@ class ChatScreen extends StatelessWidget {
                           reverse: true,
                           padding: EdgeInsets.symmetric(vertical: 20.0),
                           itemCount: chats.length,
-                          itemBuilder: (context, index) =>
-                              // children: [
-                              //   Padding(
-                              //     padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                              //     child: Text('Beginning of the converstaion'),
-                              //   ),
-                              //   SizedBox(height: 5.0),
-                              //   Padding(
-                              //     padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                              //     child: Text('Wednesday, November 11, 10:34 PM'),
-                              //   ),
-                              //   SizedBox(height: 20.0),
-                              ChatBubble(
+                          itemBuilder: (context, index) => ChatBubble(
+                            type: chats[index]['type'],
                             text: chats[index]['text'],
                             username: chats[index]['username'],
                             isSentMsg:
@@ -128,6 +121,7 @@ class ChatScreen extends StatelessWidget {
                   child: Row(
                     children: [
                       Expanded(
+                        flex: 5,
                         child: TextField(
                           controller: msgController,
                           style: TextStyle(
@@ -159,25 +153,66 @@ class ChatScreen extends StatelessWidget {
                         ),
                       ),
                       SizedBox(width: 10.0),
-                      FlatButton(
-                        padding: EdgeInsets.all(0),
-                        textColor: Theme.of(context).accentColor,
-                        child: Icon(Icons.send),
-                        onPressed: () async {
-                          final String message = msgController.text.trim();
-                          if (message == '') {
-                            return;
-                          }
-                          msgController.clear();
-                          await firestore
-                              .collection('rooms/$roomId/chats/')
-                              .add({
-                            'text': message,
-                            'uid': auth.currentUser.uid,
-                            'username': auth.currentUser.displayName,
-                            'createdAt': Timestamp.now(),
-                          });
-                        },
+                      Expanded(
+                        child: FlatButton(
+                          padding: EdgeInsets.all(0),
+                          textColor: Theme.of(context).accentColor,
+                          child: Icon(Icons.photo),
+                          onPressed: () async {
+                            final pickedImage = await ImagePicker()
+                                .getImage(source: ImageSource.gallery);
+                            if (pickedImage != null) {
+                              File selectedImage = File(pickedImage.path);
+                              String extension =
+                                  pickedImage.path.split('.').last;
+                              await firestore
+                                  .collection('rooms/$roomId/chats/')
+                                  .add({
+                                'type': 'text',
+                                'text': '[uploading image]',
+                                'uid': auth.currentUser.uid,
+                                'username': auth.currentUser.displayName,
+                                'createdAt': Timestamp.now(),
+                              }).then((text) {
+                                String url;
+                                storage
+                                    .ref('images/$roomId/${text.id}.$extension')
+                                    .putFile(selectedImage)
+                                    .then((image) async {
+                                  url = await image.ref.getDownloadURL();
+                                }).then((value) {
+                                  text.update({
+                                    'type': 'image',
+                                    'text': url,
+                                  });
+                                });
+                              });
+                            }
+                          },
+                        ),
+                      ),
+                      Expanded(
+                        child: FlatButton(
+                          padding: EdgeInsets.all(0),
+                          textColor: Theme.of(context).accentColor,
+                          child: Icon(Icons.send),
+                          onPressed: () async {
+                            final String message = msgController.text.trim();
+                            if (message == '') {
+                              return;
+                            }
+                            msgController.clear();
+                            await firestore
+                                .collection('rooms/$roomId/chats/')
+                                .add({
+                              'type': 'text',
+                              'text': message,
+                              'uid': auth.currentUser.uid,
+                              'username': auth.currentUser.displayName,
+                              'createdAt': Timestamp.now(),
+                            });
+                          },
+                        ),
                       ),
                     ],
                   ),
@@ -194,12 +229,14 @@ class ChatScreen extends StatelessWidget {
 class ChatBubble extends StatelessWidget {
   const ChatBubble({
     Key key,
+    @required this.type,
     @required this.text,
     @required this.username,
     @required this.isSentMsg,
     @required this.timestamp,
   }) : super(key: key);
 
+  final String type;
   final String text;
   final String username;
   final bool isSentMsg;
@@ -207,7 +244,7 @@ class ChatBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (username == 'system') {
+    if (type == 'alert') {
       return Container(
         margin: EdgeInsets.only(
           right: 20.0,
@@ -270,10 +307,30 @@ class ChatBubble extends StatelessWidget {
             ],
           ),
           SizedBox(height: 10.0),
-          Text(
-            text,
-            style: TextStyle(fontFamily: 'HelveticaNeueLight', fontSize: 15.0),
-          ),
+          type == 'image'
+              ? Image.network(
+                  text,
+                  loadingBuilder: (context, child, loadingProgress) {
+                    if (loadingProgress == null)
+                      return ClipRRect(
+                        borderRadius: BorderRadius.circular(5.0),
+                        child: child,
+                      );
+                    return Center(
+                      child: CircularProgressIndicator(
+                        value: loadingProgress.expectedTotalBytes != null
+                            ? loadingProgress.cumulativeBytesLoaded /
+                                loadingProgress.expectedTotalBytes
+                            : null,
+                      ),
+                    );
+                  },
+                )
+              : Text(
+                  text,
+                  style: TextStyle(
+                      fontFamily: 'HelveticaNeueLight', fontSize: 15.0),
+                ),
         ],
       ),
     );
