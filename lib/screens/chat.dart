@@ -100,7 +100,7 @@ class ChatScreen extends StatelessWidget {
                         final chats = snapshot.data.documents;
                         return ListView.builder(
                           reverse: true,
-                          padding: EdgeInsets.symmetric(vertical: 20.0),
+                          padding: EdgeInsets.symmetric(vertical: 10.0),
                           itemCount: chats.length,
                           itemBuilder: (context, index) => ChatBubble(
                             type: chats[index]['type'],
@@ -116,7 +116,43 @@ class ChatScreen extends StatelessWidget {
                   ),
                 ),
                 Container(
-                  margin: EdgeInsets.symmetric(vertical: 10.0),
+                  height: 30.0,
+                  padding:
+                      EdgeInsets.symmetric(horizontal: 20.0, vertical: 5.0),
+                  child: StreamBuilder(
+                      stream: firestore
+                          .collection('rooms/$roomId/members')
+                          .where('isTyping', isEqualTo: true)
+                          .snapshots(),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return Container();
+                        }
+                        // if no one is typing
+                        if (snapshot.data.documents.isEmpty) {
+                          return Container();
+                        }
+                        // if only current user is typing
+                        if (snapshot.data.size == 1 &&
+                            snapshot.data.documents[0].data()['uid'] ==
+                                auth.currentUser.uid) {
+                          return Container();
+                        }
+                        return Container(
+                          child: Text(
+                            'Someone is typing...',
+                            style: TextStyle(
+                              fontFamily: 'HelveticaNeueLight',
+                              fontSize: 12.0,
+                              color: Colors.grey,
+                            ),
+                          ),
+                        );
+                      }),
+                ),
+                Container(
+                  margin: EdgeInsets.only(bottom: 10.0),
                   padding: EdgeInsets.symmetric(horizontal: 20.0),
                   child: Row(
                     children: [
@@ -150,6 +186,41 @@ class ChatScreen extends StatelessWidget {
                               ),
                             ),
                           ),
+                          onChanged: (value) async {
+                            await firestore
+                                .collection('rooms/$roomId/members')
+                                .where('uid', isEqualTo: auth.currentUser.uid)
+                                .get()
+                                .then((member) async {
+                              if (value.trim().isNotEmpty) {
+                                firestore
+                                    .doc(
+                                        'rooms/$roomId/members/${member.docs.first.id}')
+                                    .update({'isTyping': true});
+                              } else {
+                                await firestore
+                                    .doc(
+                                        'rooms/$roomId/members/${member.docs.first.id}')
+                                    .update({'isTyping': false});
+                              }
+                            });
+                          },
+                          buildCounter: (context,
+                              {currentLength, isFocused, maxLength}) {
+                            if (!isFocused || currentLength == 0) {
+                              firestore
+                                  .collection('rooms/$roomId/members')
+                                  .where('uid', isEqualTo: auth.currentUser.uid)
+                                  .get()
+                                  .then((member) {
+                                firestore
+                                    .doc(
+                                        'rooms/$roomId/members/${member.docs.first.id}')
+                                    .update({'isTyping': false});
+                              });
+                            }
+                            return null;
+                          },
                         ),
                       ),
                       SizedBox(width: 10.0),
@@ -202,6 +273,16 @@ class ChatScreen extends StatelessWidget {
                               return;
                             }
                             msgController.clear();
+                            firestore
+                                .collection('rooms/$roomId/members')
+                                .where('uid', isEqualTo: auth.currentUser.uid)
+                                .get()
+                                .then((member) {
+                              firestore
+                                  .doc(
+                                      'rooms/$roomId/members/${member.docs.first.id}')
+                                  .update({'isTyping': false});
+                            });
                             await firestore
                                 .collection('rooms/$roomId/chats/')
                                 .add({
