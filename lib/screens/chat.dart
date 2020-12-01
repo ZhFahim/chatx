@@ -20,6 +20,7 @@ class ChatScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    bool isTyping = false;
     return WillPopScope(
       onWillPop: () async => showDialog(
         context: context,
@@ -186,28 +187,11 @@ class ChatScreen extends StatelessWidget {
                               ),
                             ),
                           ),
-                          onChanged: (value) async {
-                            await firestore
-                                .collection('rooms/$roomId/members')
-                                .where('uid', isEqualTo: auth.currentUser.uid)
-                                .get()
-                                .then((member) async {
-                              if (value.trim().isNotEmpty) {
-                                firestore
-                                    .doc(
-                                        'rooms/$roomId/members/${member.docs.first.id}')
-                                    .update({'isTyping': true});
-                              } else {
-                                await firestore
-                                    .doc(
-                                        'rooms/$roomId/members/${member.docs.first.id}')
-                                    .update({'isTyping': false});
-                              }
-                            });
-                          },
                           buildCounter: (context,
                               {currentLength, isFocused, maxLength}) {
                             if (!isFocused || currentLength == 0) {
+                              isTyping = false;
+                              print('not typing...');
                               firestore
                                   .collection('rooms/$roomId/members')
                                   .where('uid', isEqualTo: auth.currentUser.uid)
@@ -217,6 +201,19 @@ class ChatScreen extends StatelessWidget {
                                     .doc(
                                         'rooms/$roomId/members/${member.docs.first.id}')
                                     .update({'isTyping': false});
+                              });
+                            } else if (isTyping == false) {
+                              isTyping = true;
+                              print('typing...');
+                              firestore
+                                  .collection('rooms/$roomId/members')
+                                  .where('uid', isEqualTo: auth.currentUser.uid)
+                                  .get()
+                                  .then((member) async {
+                                firestore
+                                    .doc(
+                                        'rooms/$roomId/members/${member.docs.first.id}')
+                                    .update({'isTyping': true});
                               });
                             }
                             return null;
