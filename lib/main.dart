@@ -26,7 +26,10 @@ class ChatX extends StatelessWidget {
         dialogTheme: DialogTheme(backgroundColor: Color(0xFF191A4D)),
         snackBarTheme: SnackBarThemeData(
           backgroundColor: Color(0xFF000133),
-          contentTextStyle: TextStyle(color: Colors.white),
+          contentTextStyle: TextStyle(
+            color: Colors.white,
+            fontFamily: 'HelveticaNeueLight',
+          ),
         ),
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
