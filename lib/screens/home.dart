@@ -20,7 +20,8 @@ class HomeScreen extends StatelessWidget {
         body: SafeArea(
           top: false,
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 0.0),
+            padding:
+                const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
             child: Column(
               children: <Widget>[
                 Expanded(
@@ -46,7 +47,8 @@ class WelcomeMessage extends StatefulWidget {
   _WelcomeMessageState createState() => _WelcomeMessageState();
 }
 
-class _WelcomeMessageState extends State<WelcomeMessage> with TickerProviderStateMixin {
+class _WelcomeMessageState extends State<WelcomeMessage>
+    with TickerProviderStateMixin {
   AnimationController _animController;
   Animation<Offset> _animOffset;
   Animation<double> _animOpacity;
@@ -54,9 +56,13 @@ class _WelcomeMessageState extends State<WelcomeMessage> with TickerProviderStat
   @override
   void initState() {
     super.initState();
-    _animController = AnimationController(vsync: this, duration: Duration(seconds: 2));
-    _animOffset = Tween<Offset>(begin: const Offset(0.0, 5.0), end: Offset.zero).animate(
-      CurvedAnimation(curve: Interval(0.0, 0.5, curve: Curves.decelerate), parent: _animController),
+    _animController =
+        AnimationController(vsync: this, duration: Duration(seconds: 2));
+    _animOffset =
+        Tween<Offset>(begin: const Offset(0.0, 5.0), end: Offset.zero).animate(
+      CurvedAnimation(
+          curve: Interval(0.0, 0.5, curve: Curves.decelerate),
+          parent: _animController),
     );
     _animOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
@@ -136,174 +142,212 @@ class _EnterRoomSectionState extends State<EnterRoomSection> {
   Widget build(BuildContext context) {
     return isLoading
         ? Center(child: CircularProgressIndicator())
-        : Column(
-            mainAxisAlignment: MainAxisAlignment.end,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              TextField(
-                controller: roomIdController,
-                style: TextStyle(color: Colors.grey.shade800),
-                decoration: InputDecoration(
-                  contentPadding: EdgeInsets.symmetric(
-                    horizontal: 10.0,
-                    vertical: 5.0,
-                  ),
-                  filled: true,
-                  fillColor: Colors.white,
-                  labelText: 'Enter Room ID',
-                  labelStyle: TextStyle(color: Colors.grey),
-                  border: UnderlineInputBorder(
-                    borderRadius: BorderRadius.circular(5.0),
-                  ),
-                  focusedBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(
-                      color: Theme.of(context).accentColor,
-                      width: 5.0,
+        : Align(
+            alignment: Alignment.bottomCenter,
+            child: SingleChildScrollView(
+              physics: NeverScrollableScrollPhysics(),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.end,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  TextField(
+                    controller: roomIdController,
+                    style: TextStyle(color: Colors.grey.shade800),
+                    decoration: InputDecoration(
+                      contentPadding: EdgeInsets.symmetric(
+                        horizontal: 10.0,
+                        vertical: 5.0,
+                      ),
+                      filled: true,
+                      fillColor: Colors.white,
+                      labelText: 'Enter Room ID',
+                      labelStyle: TextStyle(
+                        color: Colors.grey,
+                        fontFamily: 'HelveticaNeueLight',
+                        fontWeight: FontWeight.bold,
+                      ),
+                      border: UnderlineInputBorder(
+                        borderRadius: BorderRadius.circular(5.0),
+                      ),
+                      focusedBorder: UnderlineInputBorder(
+                        borderSide: BorderSide(
+                          color: Theme.of(context).accentColor,
+                          width: 5.0,
+                        ),
+                        borderRadius: BorderRadius.circular(5.0),
+                      ),
                     ),
-                    borderRadius: BorderRadius.circular(5.0),
                   ),
-                ),
-              ),
-              SizedBox(height: 10.0),
-              FlatButton(
-                padding: const EdgeInsets.symmetric(vertical: 15.0),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  'Join Room',
-                  style: TextStyle(color: Theme.of(context).canvasColor),
-                ),
-                color: Theme.of(context).accentColor,
-                onPressed: () {
-                  setState(() {
-                    isLoading = true;
-                  });
-                  firestore.collection('rooms').where('roomId', isEqualTo: roomIdController.text.trim()).get().then((result) {
-                    if (result.docs.isNotEmpty) {
-                      firestore.collection('rooms/${result.docs.first.id}/members').get().then((value) {
-                        if (value.size < 10) {
-                          auth.signOut().then((value) {
-                            auth.signInAnonymously().then((value) async {
-                              String username = await getUsername(result.docs.first.id);
-                              await auth.currentUser.updateProfile(displayName: username);
-                              await firestore.collection('rooms/${result.docs.first.id}/members').add({
-                                'uid': auth.currentUser.uid,
-                                'username': username,
-                                'joinedAt': Timestamp.now(),
-                              });
-                              await firestore.collection('rooms/${result.docs.first.id}/chats').add({
-                                'type': 'alert',
-                                'text': '$username has entered the room',
-                                'uid': auth.currentUser.uid,
-                                'username': 'system',
-                                'createdAt': Timestamp.now(),
-                              });
-                              Navigator.pushNamed(
-                                context,
-                                'chatScreen',
-                                arguments: result.docs.first.id,
-                              ).then((value) {
-                                setState(() {
-                                  isLoading = false;
+                  SizedBox(height: 10.0),
+                  FlatButton(
+                    padding: const EdgeInsets.symmetric(vertical: 15.0),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      'Join Room',
+                      style: TextStyle(color: Theme.of(context).canvasColor),
+                    ),
+                    color: Theme.of(context).accentColor,
+                    onPressed: () {
+                      setState(() {
+                        isLoading = true;
+                      });
+                      firestore
+                          .collection('rooms')
+                          .where('roomId',
+                              isEqualTo: roomIdController.text.trim())
+                          .get()
+                          .then((result) {
+                        if (result.docs.isNotEmpty) {
+                          firestore
+                              .collection(
+                                  'rooms/${result.docs.first.id}/members')
+                              .get()
+                              .then((value) {
+                            if (value.size < 10) {
+                              auth.signOut().then((value) {
+                                auth.signInAnonymously().then((value) async {
+                                  String username =
+                                      await getUsername(result.docs.first.id);
+                                  await auth.currentUser
+                                      .updateProfile(displayName: username);
+                                  await firestore
+                                      .collection(
+                                          'rooms/${result.docs.first.id}/members')
+                                      .add({
+                                    'uid': auth.currentUser.uid,
+                                    'username': username,
+                                    'joinedAt': Timestamp.now(),
+                                  });
+                                  await firestore
+                                      .collection(
+                                          'rooms/${result.docs.first.id}/chats')
+                                      .add({
+                                    'type': 'alert',
+                                    'text': '$username has entered the room',
+                                    'uid': auth.currentUser.uid,
+                                    'username': 'system',
+                                    'createdAt': Timestamp.now(),
+                                  });
+                                  Navigator.pushNamed(
+                                    context,
+                                    'chatScreen',
+                                    arguments: result.docs.first.id,
+                                  ).then((value) {
+                                    setState(() {
+                                      isLoading = false;
+                                    });
+                                  });
                                 });
                               });
-                            });
+                            } else {
+                              setState(() {
+                                isLoading = false;
+                              });
+                              Scaffold.of(context).showSnackBar(SnackBar(
+                                content: Text(
+                                    'Maximum 10 members can enter in a room'),
+                              ));
+                            }
                           });
                         } else {
                           setState(() {
                             isLoading = false;
                           });
                           Scaffold.of(context).showSnackBar(SnackBar(
-                            content: Text('Maximum 10 members can enter in a room'),
+                            content: Text('Room not found!'),
                           ));
                         }
                       });
-                    } else {
-                      setState(() {
-                        isLoading = false;
-                      });
-                      Scaffold.of(context).showSnackBar(SnackBar(
-                        content: Text('Room not found!'),
-                      ));
-                    }
-                  });
-                },
-              ),
-              SizedBox(height: 30.0),
-              Container(
-                height: 50.0,
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Expanded(
-                      flex: 5,
-                      child: FlatButton(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8.0),
-                        ),
-                        child: Text(
-                          'Create Room',
-                          style: TextStyle(color: Theme.of(context).canvasColor),
-                        ),
-                        color: Theme.of(context).accentColor,
-                        onPressed: () {
-                          setState(() {
-                            isLoading = true;
-                          });
-                          auth.signOut().then((value) {
-                            auth.signInAnonymously().then((value) async {
-                              var room = await firestore.collection('rooms').add(
-                                {},
-                              );
-                              String username = await getUsername(room.id);
-                              await auth.currentUser.updateProfile(displayName: username);
-                              await firestore.collection('rooms/${room.id}/members').add({
-                                'uid': auth.currentUser.uid,
-                                'username': username,
-                                'joinedAt': Timestamp.now(),
+                    },
+                  ),
+                  SizedBox(height: 30.0),
+                  Container(
+                    height: 50.0,
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Expanded(
+                          flex: 5,
+                          child: FlatButton(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8.0),
+                            ),
+                            child: Text(
+                              'Create Room',
+                              style: TextStyle(
+                                  color: Theme.of(context).canvasColor),
+                            ),
+                            color: Theme.of(context).accentColor,
+                            onPressed: () {
+                              setState(() {
+                                isLoading = true;
                               });
-                              await firestore.doc('rooms/${room.id}').update({'roomId': room.id.substring(0, 8)});
-                              await firestore.collection('rooms/${room.id}/chats').add({
-                                'type': 'alert',
-                                'text': '$username has created the room',
-                                'uid': auth.currentUser.uid,
-                                'username': 'system',
-                                'createdAt': Timestamp.now(),
-                              });
-                              Navigator.pushNamed(
-                                context,
-                                'chatScreen',
-                                arguments: room.id,
-                              ).then((value) {
-                                setState(() {
-                                  isLoading = false;
+                              auth.signOut().then((value) {
+                                auth.signInAnonymously().then((value) async {
+                                  var room =
+                                      await firestore.collection('rooms').add(
+                                    {},
+                                  );
+                                  String username = await getUsername(room.id);
+                                  await auth.currentUser
+                                      .updateProfile(displayName: username);
+                                  await firestore
+                                      .collection('rooms/${room.id}/members')
+                                      .add({
+                                    'uid': auth.currentUser.uid,
+                                    'username': username,
+                                    'joinedAt': Timestamp.now(),
+                                  });
+                                  await firestore
+                                      .doc('rooms/${room.id}')
+                                      .update(
+                                          {'roomId': room.id.substring(0, 8)});
+                                  await firestore
+                                      .collection('rooms/${room.id}/chats')
+                                      .add({
+                                    'type': 'alert',
+                                    'text': '$username has created the room',
+                                    'uid': auth.currentUser.uid,
+                                    'username': 'system',
+                                    'createdAt': Timestamp.now(),
+                                  });
+                                  Navigator.pushNamed(
+                                    context,
+                                    'chatScreen',
+                                    arguments: room.id,
+                                  ).then((value) {
+                                    setState(() {
+                                      isLoading = false;
+                                    });
+                                  });
                                 });
                               });
-                            });
-                          });
-                        },
-                      ),
-                    ),
-                    SizedBox(width: 5.0),
-                    Expanded(
-                      child: FlatButton(
-                        padding: EdgeInsets.zero,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8.0),
+                            },
+                          ),
                         ),
-                        child: Icon(
-                          Icons.info_outline,
-                          color: Theme.of(context).canvasColor,
+                        SizedBox(width: 5.0),
+                        Expanded(
+                          child: FlatButton(
+                            padding: EdgeInsets.zero,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8.0),
+                            ),
+                            child: Icon(
+                              Icons.info_outline,
+                              color: Theme.of(context).canvasColor,
+                            ),
+                            color: Theme.of(context).accentColor,
+                            onPressed: () {},
+                          ),
                         ),
-                        color: Theme.of(context).accentColor,
-                        onPressed: () {},
-                      ),
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-            ],
+            ),
           );
   }
 }
