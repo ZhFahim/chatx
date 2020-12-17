@@ -1,6 +1,8 @@
 import 'dart:math';
+import 'package:chatx/screens/info_popup.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:chatx/constants.dart';
@@ -20,8 +22,7 @@ class HomeScreen extends StatelessWidget {
         body: SafeArea(
           top: false,
           child: Padding(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
+            padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
             child: Column(
               children: <Widget>[
                 Expanded(
@@ -47,8 +48,7 @@ class WelcomeMessage extends StatefulWidget {
   _WelcomeMessageState createState() => _WelcomeMessageState();
 }
 
-class _WelcomeMessageState extends State<WelcomeMessage>
-    with TickerProviderStateMixin {
+class _WelcomeMessageState extends State<WelcomeMessage> with TickerProviderStateMixin {
   AnimationController _animController;
   Animation<Offset> _animOffset;
   Animation<double> _animOpacity;
@@ -56,13 +56,9 @@ class _WelcomeMessageState extends State<WelcomeMessage>
   @override
   void initState() {
     super.initState();
-    _animController =
-        AnimationController(vsync: this, duration: Duration(seconds: 2));
-    _animOffset =
-        Tween<Offset>(begin: const Offset(0.0, 5.0), end: Offset.zero).animate(
-      CurvedAnimation(
-          curve: Interval(0.0, 0.5, curve: Curves.decelerate),
-          parent: _animController),
+    _animController = AnimationController(vsync: this, duration: Duration(seconds: 2));
+    _animOffset = Tween<Offset>(begin: const Offset(0.0, 5.0), end: Offset.zero).animate(
+      CurvedAnimation(curve: Interval(0.0, 0.5, curve: Curves.decelerate), parent: _animController),
     );
     _animOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
@@ -193,37 +189,20 @@ class _EnterRoomSectionState extends State<EnterRoomSection> {
                       setState(() {
                         isLoading = true;
                       });
-                      firestore
-                          .collection('rooms')
-                          .where('roomId',
-                              isEqualTo: roomIdController.text.trim())
-                          .get()
-                          .then((result) {
+                      firestore.collection('rooms').where('roomId', isEqualTo: roomIdController.text.trim()).get().then((result) {
                         if (result.docs.isNotEmpty) {
-                          firestore
-                              .collection(
-                                  'rooms/${result.docs.first.id}/members')
-                              .get()
-                              .then((value) {
+                          firestore.collection('rooms/${result.docs.first.id}/members').get().then((value) {
                             if (value.size < 10) {
                               auth.signOut().then((value) {
                                 auth.signInAnonymously().then((value) async {
-                                  String username =
-                                      await getUsername(result.docs.first.id);
-                                  await auth.currentUser
-                                      .updateProfile(displayName: username);
-                                  await firestore
-                                      .collection(
-                                          'rooms/${result.docs.first.id}/members')
-                                      .add({
+                                  String username = await getUsername(result.docs.first.id);
+                                  await auth.currentUser.updateProfile(displayName: username);
+                                  await firestore.collection('rooms/${result.docs.first.id}/members').add({
                                     'uid': auth.currentUser.uid,
                                     'username': username,
                                     'joinedAt': Timestamp.now(),
                                   });
-                                  await firestore
-                                      .collection(
-                                          'rooms/${result.docs.first.id}/chats')
-                                      .add({
+                                  await firestore.collection('rooms/${result.docs.first.id}/chats').add({
                                     'type': 'alert',
                                     'text': '$username has entered the room',
                                     'uid': auth.currentUser.uid,
@@ -246,8 +225,7 @@ class _EnterRoomSectionState extends State<EnterRoomSection> {
                                 isLoading = false;
                               });
                               Scaffold.of(context).showSnackBar(SnackBar(
-                                content: Text(
-                                    'Maximum 10 members can enter in a room'),
+                                content: Text('Maximum 10 members can enter in a room'),
                               ));
                             }
                           });
@@ -276,8 +254,7 @@ class _EnterRoomSectionState extends State<EnterRoomSection> {
                             ),
                             child: Text(
                               'Create Room',
-                              style: TextStyle(
-                                  color: Theme.of(context).canvasColor),
+                              style: TextStyle(color: Theme.of(context).canvasColor),
                             ),
                             color: Theme.of(context).accentColor,
                             onPressed: () {
@@ -286,27 +263,18 @@ class _EnterRoomSectionState extends State<EnterRoomSection> {
                               });
                               auth.signOut().then((value) {
                                 auth.signInAnonymously().then((value) async {
-                                  var room =
-                                      await firestore.collection('rooms').add(
+                                  var room = await firestore.collection('rooms').add(
                                     {},
                                   );
                                   String username = await getUsername(room.id);
-                                  await auth.currentUser
-                                      .updateProfile(displayName: username);
-                                  await firestore
-                                      .collection('rooms/${room.id}/members')
-                                      .add({
+                                  await auth.currentUser.updateProfile(displayName: username);
+                                  await firestore.collection('rooms/${room.id}/members').add({
                                     'uid': auth.currentUser.uid,
                                     'username': username,
                                     'joinedAt': Timestamp.now(),
                                   });
-                                  await firestore
-                                      .doc('rooms/${room.id}')
-                                      .update(
-                                          {'roomId': room.id.substring(0, 8)});
-                                  await firestore
-                                      .collection('rooms/${room.id}/chats')
-                                      .add({
+                                  await firestore.doc('rooms/${room.id}').update({'roomId': room.id.substring(0, 8)});
+                                  await firestore.collection('rooms/${room.id}/chats').add({
                                     'type': 'alert',
                                     'text': '$username has created the room',
                                     'uid': auth.currentUser.uid,
@@ -339,7 +307,12 @@ class _EnterRoomSectionState extends State<EnterRoomSection> {
                               color: Theme.of(context).canvasColor,
                             ),
                             color: Theme.of(context).accentColor,
-                            onPressed: () {},
+                            onPressed: () {
+                              showDialog(
+                                context: context,
+                                builder: (context) => InfoPopup(),
+                              );
+                            },
                           ),
                         ),
                       ],
