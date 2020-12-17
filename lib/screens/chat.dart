@@ -44,8 +44,7 @@ class ChatScreen extends StatelessWidget {
                         padding: const EdgeInsets.only(left: 20.0),
                         child: Text(
                           'Room ${roomId.substring(0, 8)}',
-                          style: TextStyle(
-                              color: Color(0xFFFFBF59), fontSize: 28.0),
+                          style: TextStyle(color: Color(0xFFFFBF59), fontSize: 28.0),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
@@ -57,18 +56,12 @@ class ChatScreen extends StatelessWidget {
                         onTap: () {
                           Navigator.of(context).push(
                             PageRouteBuilder(
-                              pageBuilder:
-                                  (context, animation, secondaryAnimation) {
+                              pageBuilder: (context, animation, secondaryAnimation) {
                                 return RoomMenuScreen(roomId);
                               },
-                              transitionsBuilder: (context, animation,
-                                      secondaryAnimation, child) =>
-                                  Align(
+                              transitionsBuilder: (context, animation, secondaryAnimation, child) => Align(
                                 child: SlideTransition(
-                                  position: Tween<Offset>(
-                                          begin: const Offset(1, 0),
-                                          end: Offset.zero)
-                                      .animate(animation),
+                                  position: Tween<Offset>(begin: const Offset(1, 0), end: Offset.zero).animate(animation),
                                   child: child,
                                 ),
                               ),
@@ -90,44 +83,42 @@ class ChatScreen extends StatelessWidget {
                 ),
                 Expanded(
                   child: StreamBuilder(
-                    stream: firestore
-                        .collection('rooms/$roomId/chats')
-                        .orderBy('createdAt', descending: true)
-                        .snapshots(),
+                    stream: firestore.collection('rooms/$roomId/chats').orderBy('createdAt', descending: true).snapshots(),
                     builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting) {
                         return Center(child: CircularProgressIndicator());
                       } else {
-                        final chats = snapshot.data.documents;
+                        dynamic chats;
+                        if (snapshot.data == null) {
+                          chats = List<Widget>();
+                        } else {
+                          chats = snapshot.data.documents;
+                        }
+
                         return ListView.builder(
-                          reverse: true,
-                          padding: EdgeInsets.symmetric(vertical: 10.0),
-                          itemCount: chats.length,
-                          itemBuilder: (context, index) => ChatBubble(
-                            type: chats[index]['type'],
-                            text: chats[index]['text'],
-                            username: chats[index]['username'],
-                            isSentMsg:
-                                chats[index]['uid'] == auth.currentUser.uid,
-                            timestamp: chats[index]['createdAt'],
-                          ),
-                        );
+                            reverse: true,
+                            padding: EdgeInsets.symmetric(vertical: 10.0),
+                            itemCount: chats.length,
+                            itemBuilder: (context, index) {
+                              return ChatBubble(
+                                type: chats[index]['type'],
+                                text: chats[index]['text'],
+                                username: chats[index]['username'],
+                                isSentMsg: chats[index]['uid'] == auth.currentUser.uid,
+                                timestamp: chats[index]['createdAt'],
+                              );
+                            });
                       }
                     },
                   ),
                 ),
                 Container(
                   height: 30.0,
-                  padding:
-                      EdgeInsets.symmetric(horizontal: 20.0, vertical: 5.0),
+                  padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 5.0),
                   child: StreamBuilder(
-                      stream: firestore
-                          .collection('rooms/$roomId/members')
-                          .where('isTyping', isEqualTo: true)
-                          .snapshots(),
+                      stream: firestore.collection('rooms/$roomId/members').where('isTyping', isEqualTo: true).snapshots(),
                       builder: (context, snapshot) {
-                        if (snapshot.connectionState ==
-                            ConnectionState.waiting) {
+                        if (snapshot.connectionState == ConnectionState.waiting || snapshot.data == null) {
                           return Container();
                         }
                         // if no one is typing
@@ -135,9 +126,7 @@ class ChatScreen extends StatelessWidget {
                           return Container();
                         }
                         // if only current user is typing
-                        if (snapshot.data.size == 1 &&
-                            snapshot.data.documents[0].data()['uid'] ==
-                                auth.currentUser.uid) {
+                        if (snapshot.data.size == 1 && snapshot.data.documents[0].data()['uid'] == auth.currentUser.uid) {
                           return Container();
                         }
                         return Container(
@@ -174,8 +163,7 @@ class ChatScreen extends StatelessWidget {
                             ),
                             filled: true,
                             fillColor: Colors.white,
-                            contentPadding:
-                                EdgeInsets.symmetric(horizontal: 10.0),
+                            contentPadding: EdgeInsets.symmetric(horizontal: 10.0),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(5.0),
                             ),
@@ -187,33 +175,18 @@ class ChatScreen extends StatelessWidget {
                               ),
                             ),
                           ),
-                          buildCounter: (context,
-                              {currentLength, isFocused, maxLength}) {
+                          buildCounter: (context, {currentLength, isFocused, maxLength}) {
                             if (!isFocused || currentLength == 0) {
                               isTyping = false;
                               print('not typing...');
-                              firestore
-                                  .collection('rooms/$roomId/members')
-                                  .where('uid', isEqualTo: auth.currentUser.uid)
-                                  .get()
-                                  .then((member) {
-                                firestore
-                                    .doc(
-                                        'rooms/$roomId/members/${member.docs.first.id}')
-                                    .update({'isTyping': false});
+                              firestore.collection('rooms/$roomId/members').where('uid', isEqualTo: auth.currentUser.uid).get().then((member) {
+                                firestore.doc('rooms/$roomId/members/${member.docs.first.id}').update({'isTyping': false});
                               });
                             } else if (isTyping == false) {
                               isTyping = true;
                               print('typing...');
-                              firestore
-                                  .collection('rooms/$roomId/members')
-                                  .where('uid', isEqualTo: auth.currentUser.uid)
-                                  .get()
-                                  .then((member) async {
-                                firestore
-                                    .doc(
-                                        'rooms/$roomId/members/${member.docs.first.id}')
-                                    .update({'isTyping': true});
+                              firestore.collection('rooms/$roomId/members').where('uid', isEqualTo: auth.currentUser.uid).get().then((member) async {
+                                firestore.doc('rooms/$roomId/members/${member.docs.first.id}').update({'isTyping': true});
                               });
                             }
                             return null;
@@ -227,15 +200,11 @@ class ChatScreen extends StatelessWidget {
                           textColor: Theme.of(context).accentColor,
                           child: Icon(Icons.photo),
                           onPressed: () async {
-                            final pickedImage = await ImagePicker()
-                                .getImage(source: ImageSource.gallery);
+                            final pickedImage = await ImagePicker().getImage(source: ImageSource.gallery);
                             if (pickedImage != null) {
                               File selectedImage = File(pickedImage.path);
-                              String extension =
-                                  pickedImage.path.split('.').last;
-                              await firestore
-                                  .collection('rooms/$roomId/chats/')
-                                  .add({
+                              String extension = pickedImage.path.split('.').last;
+                              await firestore.collection('rooms/$roomId/chats/').add({
                                 'type': 'text',
                                 'text': '[uploading image]',
                                 'uid': auth.currentUser.uid,
@@ -243,10 +212,7 @@ class ChatScreen extends StatelessWidget {
                                 'createdAt': Timestamp.now(),
                               }).then((text) {
                                 String url;
-                                storage
-                                    .ref('images/$roomId/${text.id}.$extension')
-                                    .putFile(selectedImage)
-                                    .then((image) async {
+                                storage.ref('images/$roomId/${text.id}.$extension').putFile(selectedImage).then((image) async {
                                   url = await image.ref.getDownloadURL();
                                 }).then((value) {
                                   text.update({
@@ -270,19 +236,10 @@ class ChatScreen extends StatelessWidget {
                               return;
                             }
                             msgController.clear();
-                            firestore
-                                .collection('rooms/$roomId/members')
-                                .where('uid', isEqualTo: auth.currentUser.uid)
-                                .get()
-                                .then((member) {
-                              firestore
-                                  .doc(
-                                      'rooms/$roomId/members/${member.docs.first.id}')
-                                  .update({'isTyping': false});
+                            firestore.collection('rooms/$roomId/members').where('uid', isEqualTo: auth.currentUser.uid).get().then((member) {
+                              firestore.doc('rooms/$roomId/members/${member.docs.first.id}').update({'isTyping': false});
                             });
-                            await firestore
-                                .collection('rooms/$roomId/chats/')
-                                .add({
+                            await firestore.collection('rooms/$roomId/chats/').add({
                               'type': 'text',
                               'text': message,
                               'uid': auth.currentUser.uid,
@@ -396,18 +353,14 @@ class ChatBubble extends StatelessWidget {
                       );
                     return Center(
                       child: CircularProgressIndicator(
-                        value: loadingProgress.expectedTotalBytes != null
-                            ? loadingProgress.cumulativeBytesLoaded /
-                                loadingProgress.expectedTotalBytes
-                            : null,
+                        value: loadingProgress.expectedTotalBytes != null ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes : null,
                       ),
                     );
                   },
                 )
               : Text(
                   text,
-                  style: TextStyle(
-                      fontFamily: 'HelveticaNeueLight', fontSize: 15.0),
+                  style: TextStyle(fontFamily: 'HelveticaNeueLight', fontSize: 15.0),
                 ),
         ],
       ),

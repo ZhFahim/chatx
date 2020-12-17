@@ -24,8 +24,7 @@ class RoomMenuScreen extends StatelessWidget {
                   Expanded(
                     child: Text(
                       'Room ${roomId.substring(0, 8)}',
-                      style:
-                          TextStyle(color: Color(0xFFFFBF59), fontSize: 28.0),
+                      style: TextStyle(color: Color(0xFFFFBF59), fontSize: 28.0),
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
@@ -54,21 +53,17 @@ class RoomMenuScreen extends StatelessWidget {
                       },
                     ),
                     StreamBuilder(
-                        stream: firestore
-                            .collection('rooms/$roomId/members')
-                            .orderBy('joinedAt')
-                            .snapshots(),
+                        stream: firestore.collection('rooms/$roomId/members').orderBy('joinedAt').snapshots(),
                         builder: (context, snapshot) {
-                          if (snapshot.connectionState ==
-                              ConnectionState.waiting) {
+                          if (snapshot.connectionState == ConnectionState.waiting) {
                             return ListTile(
                               title: Text('Members'),
                             );
                           }
-                          final members = snapshot.data.documents;
+                          final members = snapshot.data != null ? snapshot.data.documents : List<Widget>();
                           return ListTile(
                             contentPadding: EdgeInsets.zero,
-                            title: Text('Members (${snapshot.data.size})'),
+                            title: snapshot.data != null ? Text('Members (${snapshot.data.size})') : Text(''),
                             onTap: () {
                               showModalBottomSheet(
                                 context: context,
@@ -79,31 +74,25 @@ class RoomMenuScreen extends StatelessWidget {
                                         onTap: () => Navigator.pop(context),
                                         child: Container(
                                           color: Theme.of(context).canvasColor,
-                                          padding: EdgeInsets.symmetric(
-                                              vertical: 10.0),
+                                          padding: EdgeInsets.symmetric(vertical: 10.0),
                                           width: double.maxFinite,
-                                          child:
-                                              Icon(Icons.keyboard_arrow_down),
+                                          child: Icon(Icons.keyboard_arrow_down),
                                         ),
                                       ),
                                       Expanded(
                                         child: ListView.builder(
                                           padding: EdgeInsets.all(20.0),
                                           itemCount: members.length,
-                                          itemBuilder: (context, index) =>
-                                              ListTile(
+                                          itemBuilder: (context, index) => ListTile(
                                             contentPadding: EdgeInsets.zero,
                                             title: Text(
                                               members[index]['username'],
-                                              style: TextStyle(
-                                                  color: colors[members[index]
-                                                      ['username']]),
+                                              style: TextStyle(color: colors[members[index]['username']]),
                                             ),
                                             subtitle: Text(
                                               'Joined at: ${members[index]['joinedAt'].toDate().toLocal().toString().substring(0, 16)}',
                                               style: TextStyle(
-                                                fontFamily:
-                                                    'HelveticaNeueLight',
+                                                fontFamily: 'HelveticaNeueLight',
                                               ),
                                             ),
                                           ),
