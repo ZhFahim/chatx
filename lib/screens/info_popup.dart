@@ -6,19 +6,46 @@ class InfoPopup extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text('Info'),
+      contentPadding: EdgeInsets.zero,
+      actionsPadding: EdgeInsets.all(15.0),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'ChatX Version: 1.0',
-            style: TextStyle(fontFamily: 'HelveticaNeueLight'),
+          Padding(
+            padding: const EdgeInsets.only(
+              top: 25.0,
+              left: 18.0,
+              bottom: 5.0,
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.baseline,
+              children: [
+                Text(
+                  'ChatX',
+                  style: TextStyle(fontSize: 20.0),
+                ),
+                SizedBox(width: 5.0),
+                Text(
+                  '1.0',
+                  style: TextStyle(
+                    fontFamily: 'HelveticaNeueLight',
+                    fontSize: 14.0,
+                  ),
+                ),
+              ],
+            ),
           ),
-          SizedBox(height: 25),
-          FlatButton(
-            padding: EdgeInsets.zero,
-            onPressed: () {
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 18.0),
+            child: Divider(
+              color: Colors.white,
+            ),
+          ),
+          SizedBox(height: 5.0),
+          ListTile(
+            dense: true,
+            onTap: () {
               Navigator.push(
                 context,
                 CupertinoPageRoute(
@@ -29,7 +56,8 @@ class InfoPopup extends StatelessWidget {
                         title: Text('Terms & Conditions'),
                       ),
                       body: WebView(
-                        initialUrl: 'https://sites.google.com/view/chatx-terms-of-use/home',
+                        initialUrl:
+                            'https://sites.google.com/view/chatx-terms-of-use/home',
                         javascriptMode: JavascriptMode.unrestricted,
                       ),
                     );
@@ -37,11 +65,11 @@ class InfoPopup extends StatelessWidget {
                 ),
               );
             },
-            child: Text('Terms & Conditions of use'),
+            title: Text('Terms & Conditions'),
           ),
-          FlatButton(
-            padding: EdgeInsets.zero,
-            onPressed: () {
+          ListTile(
+            dense: true,
+            onTap: () {
               Navigator.push(
                 context,
                 CupertinoPageRoute(
@@ -52,7 +80,8 @@ class InfoPopup extends StatelessWidget {
                         title: Text('Privacy Policy'),
                       ),
                       body: WebView(
-                        initialUrl: 'https://sites.google.com/view/chatx-privacypolicy/home',
+                        initialUrl:
+                            'https://sites.google.com/view/chatx-privacypolicy/home',
                         javascriptMode: JavascriptMode.unrestricted,
                       ),
                     );
@@ -60,22 +89,21 @@ class InfoPopup extends StatelessWidget {
                 ),
               );
             },
-            child: Text('Privacy Policy'),
-          ),
-          FlatButton(
-            minWidth: 0,
-            padding: EdgeInsets.zero,
-            onPressed: () {
-              Navigator.pop(context);
-            },
-            child: Text(
-              'Dismiss',
-              style: TextStyle(color: Colors.red),
-              textAlign: TextAlign.left,
-            ),
+            title: Text('Privacy Policy'),
           ),
         ],
       ),
+      actions: [
+        GestureDetector(
+          onTap: () {
+            Navigator.pop(context);
+          },
+          child: Text(
+            'Dismiss',
+            style: TextStyle(color: Colors.red),
+          ),
+        ),
+      ],
     );
   }
 }
