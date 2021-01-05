@@ -17,20 +17,48 @@ class InfoPopup extends StatelessWidget {
               top: 25.0,
               left: 18.0,
               bottom: 5.0,
+              right: 18.0,
             ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.baseline,
+            child: Column(
               children: [
-                Text(
-                  'ChatX',
-                  style: TextStyle(fontSize: 20.0),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.baseline,
+                  children: [
+                    Text(
+                      'ChatX',
+                      style: TextStyle(fontSize: 20.0),
+                    ),
+                    SizedBox(width: 5.0),
+                    Text(
+                      '1.0',
+                      style: TextStyle(
+                        fontFamily: 'HelveticaNeueLight',
+                        fontSize: 14.0,
+                      ),
+                    ),
+                  ],
                 ),
-                SizedBox(width: 5.0),
-                Text(
-                  '1.0',
-                  style: TextStyle(
-                    fontFamily: 'HelveticaNeueLight',
-                    fontSize: 14.0,
+                SizedBox(height: 5.0),
+                RichText(
+                  text: TextSpan(
+                    text: 'Developed by ',
+                    style: TextStyle(
+                      fontFamily: 'HelveticaNeueLight',
+                      fontSize: 12.0,
+                    ),
+                    children: [
+                      TextSpan(
+                        text: 'Zahidul Hoque Fahim',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      TextSpan(
+                        text: ' and ',
+                      ),
+                      TextSpan(
+                        text: 'Merouane Tazeka',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    ],
                   ),
                 ),
               ],
